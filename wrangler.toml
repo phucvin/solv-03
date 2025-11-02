@@ -1,5 +1,5 @@
 name = "solv-03"
-main = "index.ts"
+main = "index.js"
 compatibility_date = "2025-11-01"
 compatibility_flags = ["nodejs_compat"]
 
