@@ -1,5 +1,6 @@
 import express from 'express';
 import { resolve } from 'path';
+import { httpServerHandler } from 'cloudflare:node';
 
 const app = express();
 const port = 3010;
@@ -13,3 +14,5 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
+
+export default httpServerHandler({ port });
