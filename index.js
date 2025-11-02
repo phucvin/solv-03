@@ -1,5 +1,5 @@
 import express from 'express';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { httpServerHandler } from 'cloudflare:node';
 
 const app = express();
@@ -8,7 +8,7 @@ const port = 3010;
 app.use(express.static('static'));
 
 app.get('/', (req, res) => {
-  res.sendFile(resolve(__dirname, 'pages/index.html'));
+  res.sendFile(resolve(dirname('.'), 'pages/index.html'));
 });
 
 app.listen(port, () => {
