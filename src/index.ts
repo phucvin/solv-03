@@ -1,11 +1,9 @@
-import { httpServerHandler } from "cloudflare:node";
 import { createServer } from "node:http";
 
-// Create your Node.js HTTP server
 const server = createServer((req, res) => {
 	if (req.url === "/") {
 		res.writeHead(200, { "Content-Type": "text/html" });
-		res.end("<h1>Welcome to my Node.js app on Workers!</h1>");
+		res.end("<h1>Solv Prototype 03</h1>");
 	} else if (req.url === "/api/status") {
 		res.writeHead(200, { "Content-Type": "application/json" });
 		res.end(JSON.stringify({ status: "ok", timestamp: Date.now() }));
@@ -15,7 +13,7 @@ const server = createServer((req, res) => {
 	}
 });
 
-server.listen(8080);
+console.log('Starting solv-03');
 
-// Export the server as a Workers handler
-export default httpServerHandler({ port: 8080 });
+const port = 8080;
+server.listen(port);
