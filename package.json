@@ -2,7 +2,8 @@
 	"name": "solv-03",
 	"private": true,
 	"dependencies": {
-		"@types/node": "24.3.0"
+		"@types/node": "24.3.0",
+		"tsx": "^4.20.6"
 	},
 	"devDependencies": {
 		"typescript": "5.9.2",
