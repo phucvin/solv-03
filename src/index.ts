@@ -10,7 +10,7 @@ const server = createServer(async (req, res) => {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		let index = '<h1>Index</h1>';
 		for (const route in routes) {
-			index += `<h2><a href="${route}">${route}</a></h2>`;
+			index += `<h2><a href="${route}">${route.slice(1)}</a></h2>`;
 		}
 		res.end(index);
 	} else if (req.url && routes[req.url]) {
