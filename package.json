@@ -10,6 +10,7 @@
 		"wrangler": "^4.34.0"
 	},
 	"scripts": {
-		"start": "npx tsx src/index.ts"
+		"start": "npx tsx src/index.ts",
+		"watch": "npx tsx watch src/index.ts"
 	}
 }

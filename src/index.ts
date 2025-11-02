@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 const server = createServer((req, res) => {
 	if (req.url === "/") {
 		res.writeHead(200, { "Content-Type": "text/html" });
-		res.end("<h1>Solv Prototype 03</h1><h3>WIP: 1</h3>");
+		res.end("<h1>Solv Prototype 03</h1><h3>WIP: 3</h3>");
 	} else if (req.url === "/api/status") {
 		res.writeHead(200, { "Content-Type": "application/json" });
 		res.end(JSON.stringify({ status: "ok", timestamp: Date.now() }));
