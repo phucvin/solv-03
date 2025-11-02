@@ -2,9 +2,13 @@
   "name": "express-simple-starter",
   "private": true,
   "scripts": {
-    "start": "node index.js"
+    "start": "npx tsx index.ts"
   },
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "tsx": "^4.20.6"
   }
 }
