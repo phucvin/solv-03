@@ -10,6 +10,11 @@
 		"wrangler": "^4.34.0"
 	},
 	"scripts": {
-		"start": "npx tsx src/index.ts"
+		"cf-typegen": "wrangler types",
+		"check": "tsc && wrangler deploy --dry-run",
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"build": "wrangler build"
 	}
 }
