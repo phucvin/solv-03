@@ -1,4 +1,7 @@
 export type Id = string;
+export type HasId = { id: string };
+
+export type StaticId = string;
 
 export type CreateElement = {
     id: Id,

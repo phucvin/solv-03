@@ -1,5 +1,5 @@
 import { Element, Solv } from "../../server";
-import { Id, BODY, DOCUMENT } from "../../shared";
+import { BODY, DOCUMENT } from "../../shared";
 
 function Counter(solv: Solv) : Element {
     const countTxt = solv.newElement('span');
@@ -9,7 +9,7 @@ function Counter(solv: Solv) : Element {
     incBtn.setValue('innerHTML', 'inc');
 
     const main = solv.newElement('div');
-    main.setChildren([countTxt.id, incBtn.id]);
+    main.setChildren([countTxt, incBtn]);
     return main;
 }
 

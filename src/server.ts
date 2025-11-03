@@ -1,29 +1,46 @@
-import { Id, CommandMap } from "./shared";
+import { Id, HasId, StaticId, CommandMap } from "./shared";
 import clientFunc from './client';
 
 const clientCode = clientFunc.toString();
 
-export type HasId = {
-    id: Id,
-};
-
 export type Element = {
     id: Id,
     setValue: (name: string, value: any) => void,
-    setChildren: (children: Id[] | null) => void,
+    setChildren: (children: (HasId | Id)[]) => void,
 };
 
-export type Signal = HasId;
+export type Signal = {
+    id: Id,
+};
 
 export type Solv = {
     newElement: (tag: string) => Element,
     newSignal: (initialValue: any) => Signal,
     getElement: (id: Id) => Element,
-    addEffect: (element: Element, handler: Id, ...params: HasId[]) => void,
+    addEffect: (element: Element, handler: StaticId, ...params: (Id | HasId)[]) => void,
 };
 
 function numberToId(x: number) {
     return `_${x}`;
+}
+
+function toId(x: HasId | Id) {
+    if (typeof x === 'string') {
+        return x;
+    } else {
+        return x.id;
+    }
+}
+
+function toIds(xs: (HasId | Id)[]) {
+    if (!xs) {
+        return xs;
+    }
+    const ids: Id[] = [];
+    for (const x of xs) {
+        ids.push(toId(x));
+    }
+    return ids;
 }
 
 export async function serve(app: (solv: Solv) => Promise<void>) {
@@ -71,7 +88,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                     }
                     cm.updateElements[id]!.setValues![name] = value;
                 },
-                setChildren: (children: Id[] | null) => {
+                setChildren: (children: (HasId | Id)[]) => {
                     if (!cm.updateElements) {
                         cm.updateElements = {};
                     }
@@ -82,18 +99,18 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                             setChildren: undefined,
                         };
                     }
-                    cm.updateElements[id]!.setChildren = children || undefined;
+                    cm.updateElements[id]!.setChildren = toIds(children);
                 },
             };
         },
-        addEffect: (element: Id, handler: Id, ...params: HasId[]) => {
+        addEffect: (element: Element, handler: StaticId, ...params: (Id | HasId)[]) => {
             if (!cm.addEffects) {
                 cm.addEffects = {};
             }
-            if (!cm.addEffects[element]) {
-                cm.addEffects[element] = [];
+            if (!cm.addEffects[element.id]) {
+                cm.addEffects[element.id] = [];
             }
-            cm.addEffects[element].push({ handler: handler, params });
+            cm.addEffects[element.id].push({ handler: handler, params: toIds(params) });
         }
     };
     await app(solv);
