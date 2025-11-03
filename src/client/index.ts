@@ -1,8 +1,8 @@
 import { Id, Signal, UpdateElement, CommandMap, Element } from './types';
 
 export default () => {
-    const signalMap = new Map<Id, Signal>();
-    let outgoingSetSignals = new Map<Id, any>();
+    const signalMap: { [id: Id]: Signal | null } = {};
+    let outgoingSetSignals : { [id: Id]: any } = {};
     const elementById = new Map<Id, HTMLElement>();
 
     function createElement(id: Id, tag: string) {
@@ -26,7 +26,7 @@ export default () => {
             case '$body': node = document.body; break;
             default: node = getElementById(this.id)!; break;
         }
-        for (const [name, value] of Object.entries(update.setValues)) {
+        for (const [name, value] of Object.entries(update.setValues || {})) {
             node[name] = value;
         }
         if (update.setChildren) {
@@ -50,21 +50,21 @@ export default () => {
     }
 
     function setSignal(id: Id, value: any) {
-        if (!signalMap.has(id)) {
-            signalMap.set(id, { id, currentValue: value, set: signalSet });
+        if (!signalMap[id]) {
+            signalMap[id] = { id, currentValue: value, set: signalSet };
         }
-        signalMap.get(id)!.set(value);
+        signalMap[id]!.set(value);
     }
 
     function applyCommandMap(cm: CommandMap) {
-        for (const ce of cm.createElements) {
+        for (const ce of cm.createElements || []) {
             createElement(ce.id, ce.tag);
         }
-        for (const [id, update] of Object.entries(cm.updateElements)) {
+        for (const [id, update] of Object.entries(cm.updateElements || {})) {
             getElement(id).applyUpdate(update);
         }
         // TODO: deleteElements
-        for (const [id, value] of Object.entries(cm.setSignals)) {
+        for (const [id, value] of Object.entries(cm.setSignals || {})) {
             setSignal(id, value);
         }
     }

@@ -6,22 +6,22 @@ export type CreateElement = {
 };
 
 export type AddEffect = {
-    handlerId: Id,
+    handler: Id,
     params: Id[],
 };
 
 export type CommandMap = {
-    nextNumber: number,
-    createElements: CreateElement[],
-    deleteDelements: Id[],
-    updateElements: { [id: Id] : UpdateElement },
-    setSignals: { [id: Id]: any },
-    addEffects: { [elementId: Id]: AddEffect[] },
+    nextNumber: number | null,
+    createElements: CreateElement[] | null,
+    deleteDelements: Id[] | null,
+    updateElements: { [id: Id] : UpdateElement } | null,
+    setSignals: { [id: Id]: any } | null,
+    addEffects: { [elementId: Id]: AddEffect[] } | null,
 };
 
 export type UpdateElement = {
-    setValues: { [key: string]: any },
-    removeValues: string[],
+    setValues: { [key: string]: any } | null,
+    removeValues: string[] | null,
     setChildren: Id[] | null,
 };
 

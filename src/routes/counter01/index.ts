@@ -40,12 +40,18 @@ export async function render(app: (solv: Solv) => Promise<void>) {
     };
     const solv: Solv = {
         newElement: (tag: string) => {
-            const id = numberToId(cm.nextNumber++);
+            const id = numberToId(cm.nextNumber!++);
+            if (!cm.createElements) {
+                cm.createElements = [];
+            }
             cm.createElements.push({ id, tag });
             return solv.getElement(id);
         },
         newSignal: (initialValue: any) => {
-            const id = numberToId(cm.nextNumber++);
+            const id = numberToId(cm.nextNumber!++);
+            if (!cm.setSignals) {
+                cm.setSignals = {};
+            }
             cm.setSignals[id] = initialValue;
             return id;
         },
@@ -53,20 +59,29 @@ export async function render(app: (solv: Solv) => Promise<void>) {
             return {
                 id,
                 setValue: (name: string, value: any) => {
+                    if (!cm.updateElements) {
+                        cm.updateElements = {};
+                    }
                     if (!cm.updateElements[id]) {
                         cm.updateElements[id] = {
-                            setValues: {},
-                            removeValues: [],
+                            setValues: null,
+                            removeValues: null,
                             setChildren: null,
                         };
                     }
-                    cm.updateElements[id].setValues[name] = value;
+                    if (!cm.updateElements[id].setValues) {
+                        cm.updateElements[id].setValues = {};
+                    }
+                    cm.updateElements[id]!.setValues![name] = value;
                 },
                 setChildren: (children: Id[] | null) => {
+                    if (!cm.updateElements) {
+                        cm.updateElements = {};
+                    }
                     if (!cm.updateElements[id]) {
                         cm.updateElements[id] = {
-                            setValues: {},
-                            removeValues: [],
+                            setValues: null,
+                            removeValues: null,
                             setChildren: null,
                         };
                     }
@@ -75,10 +90,13 @@ export async function render(app: (solv: Solv) => Promise<void>) {
             };
         },
         addEffect: (element: Id, handler: Id, ...params: Id[]) => {
+            if (!cm.addEffects) {
+                cm.addEffects = {};
+            }
             if (!cm.addEffects[element]) {
                 cm.addEffects[element] = [];
             }
-            cm.addEffects[element].push({ handlerId: handler, params });
+            cm.addEffects[element].push({ handler: handler, params });
         }
     };
     await app(solv);
