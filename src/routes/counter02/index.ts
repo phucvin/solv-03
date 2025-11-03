@@ -56,7 +56,7 @@ function Counter(solv: Solv): Element {
 }
 
 export default async function (solv: Solv) {
-    solv.getElement(DOCUMENT).set('title', 'hello');
+    solv.getElement(DOCUMENT).set('title', 'Counter 02');
 
     const body = solv.getElement(BODY);
     body.set('class', 'flex items-center justify-center min-h-screen bg-gray-100');
