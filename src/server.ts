@@ -107,6 +107,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 cm.setSignals = {};
             }
             cm.setSignals[id] = initialValue;
+            signalCurrentValues[id] = initialValue;
             return solv.getSignal(id);
         },
         getElement: (id: Id) => {
@@ -154,17 +155,14 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         for (const addEffect of cm.addEffects[elementId]) {
             let handler = registeredServerHandlers[addEffect.handler];
             if (!handler) {
-                handler = registerSharedHandler[addEffect.handler];
+                handler = registeredSharedHandlers[addEffect.handler];
             }
             if (!handler) {
-                throw new Error(`Handler not found whie processing added effects`);
+                throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
             }
-            let params : any = [];
-            for (const paramId in addEffect.params) {
-                params.push(solv.getSignal(paramId));
-            }
+            let params : any = [...addEffect.params];
             params.push(solv);
-            handler(...params)
+            handler(...params);
         }
     }
 

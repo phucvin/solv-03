@@ -15,7 +15,7 @@ const aInc = registerSharedHandler((countId: Id, solv: Solv) => {
 function Counter(solv: Solv) : Element {
     const main = solv.newElement('div');
 
-    const count = solv.newSignal(0);
+    const count = solv.newSignal(10);
     const countTxt = solv.newElement('span');
     solv.addEffect(main, eTxt, [count, countTxt]);
 
