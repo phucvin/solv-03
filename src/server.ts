@@ -43,6 +43,20 @@ function toIds(xs: (HasId | Id)[]) {
     return ids;
 }
 
+function initUpdateElements(cm: CommandMap, element: Id | HasId) {
+    const id = toId(element);
+    if (!cm.updateElements) {
+        cm.updateElements = {};
+    }
+    if (!cm.updateElements[id]) {
+        cm.updateElements[id] = {
+            setValues: undefined,
+            removeValues: undefined,
+            setChildren: undefined,
+        };
+    }
+}
+
 export async function serve(app: (solv: Solv) => Promise<void>) {
     const cm: CommandMap = {
         nextNumber: 1,
@@ -73,33 +87,15 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
             return {
                 id,
                 setValue: (name: string, value: any) => {
-                    if (!cm.updateElements) {
-                        cm.updateElements = {};
+                    initUpdateElements(cm, id);
+                    if (!cm.updateElements![id].setValues) {
+                        cm.updateElements![id].setValues = {};
                     }
-                    if (!cm.updateElements[id]) {
-                        cm.updateElements[id] = {
-                            setValues: undefined,
-                            removeValues: undefined,
-                            setChildren: undefined,
-                        };
-                    }
-                    if (!cm.updateElements[id].setValues) {
-                        cm.updateElements[id].setValues = {};
-                    }
-                    cm.updateElements[id]!.setValues![name] = value;
+                    cm.updateElements![id]!.setValues![name] = value;
                 },
                 setChildren: (children: (HasId | Id)[]) => {
-                    if (!cm.updateElements) {
-                        cm.updateElements = {};
-                    }
-                    if (!cm.updateElements[id]) {
-                        cm.updateElements[id] = {
-                            setValues: undefined,
-                            removeValues: undefined,
-                            setChildren: undefined,
-                        };
-                    }
-                    cm.updateElements[id]!.setChildren = toIds(children);
+                    initUpdateElements(cm, id); 
+                    cm.updateElements![id]!.setChildren = toIds(children);
                 },
             };
         },
