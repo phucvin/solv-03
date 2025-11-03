@@ -7,7 +7,6 @@ Focusing on:
 - Offline-capable to allow DOM updates on both client and server
 
 TODOs:
-- Handle list
 - SSR
 - Server action & effect handler
 - Server caches signals & effects for each client but allow client to resend them if lost
