@@ -14,14 +14,14 @@ type Signal = {
 export default () => {
     const signalMap: { [id: Id]: Signal | null } = {};
     let outgoingSetSignals : { [id: Id]: any } = {};
-    const elementById = new Map<Id, HTMLElement>();
+    const elementById = new Map<Id, WeakRef<HTMLElement>>();
     const DOCUMENT = '$document';
     const BODY = '$body';
 
     function createElement(id: Id, tag: string) {
         const node = document.createElement(tag);
         node.id = id;
-        elementById[id] = node;
+        elementById[id] = new WeakRef(node);
     }
 
     function getElementById(id: Id) : HTMLElement {
@@ -29,7 +29,7 @@ export default () => {
         if (node) {
             return node;
         }
-        return elementById[id]!;
+        return elementById[id]!.deref();
     }
 
     function elementApplyUpdate(this: Element, update: UpdateElement) {

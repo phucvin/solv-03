@@ -1,9 +1,7 @@
-import { CommandMap } from "./shared";
+import { Id, CommandMap } from "./shared";
 import clientFunc from './client';
 
 const clientCode = clientFunc.toString();
-
-export type Id = string;
 
 export type Element = {
     id: Id,
