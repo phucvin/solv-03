@@ -19,7 +19,7 @@ function Counter(solv: Solv) : Element {
     const count = solv.newSignal(10);
     const countTxt = solv.newElement('span');
     countTxt.set('class', 'text-5xl font-semibold text-gray-800');
-    solv.addEffect(main, eTxt, [count.id, countTxt.id]);
+    solv.addEffect(eTxt, [count.id, countTxt.id]);
 
     const incBtn = solv.newElement('button');
     incBtn.set('class', 'bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full text-2xl');

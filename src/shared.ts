@@ -20,7 +20,7 @@ export type Solv = {
     newSignal: (initialValue: any) => Signal,
     getElement: (id: Id) => Element,
     getSignal: (id: Id) => Signal,
-    addEffect: (element: Element, handler: StaticId, params: any[]) => void,
+    addEffect: (handler: StaticId, params: any[]) => void,
 };
 
 export type CreateElement = {
@@ -39,7 +39,7 @@ export type CommandMap = {
     updateElements: { [id: Id] : UpdateElement } | undefined,
     deleteElements: Id[] | undefined,
     setSignals: { [id: Id]: any } | undefined,
-    addEffects: { [elementId: Id]: AddEffect[] } | undefined,
+    addEffects: AddEffect[] | undefined,
     pendingSignals: { [id: Id]: number } | undefined,
 };
 

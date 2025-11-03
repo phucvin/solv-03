@@ -69,14 +69,12 @@ export default () => {
         for (const [id, value] of Object.entries(cm.setSignals || {})) {
             signalCurrentValues[id] = value;
         }
-        for (const elementId in cm.addEffects || []) {
-            for (const addEffect of cm.addEffects![elementId] || []) {
-                for (const paramId of addEffect.params) {
-                    if (!effectMap[paramId]) {
-                        effectMap[paramId] = [];
-                    }
-                    effectMap[paramId].push(addEffect);
+        for (const addEffect of cm.addEffects || []) {
+            for (const paramId of addEffect.params) {
+                if (!effectMap[paramId]) {
+                    effectMap[paramId] = [];
                 }
+                effectMap[paramId].push(addEffect);
             }
         }
         elementById.clear();
@@ -158,15 +156,12 @@ export default () => {
                 },
             }
         },
-        addEffect: (element: Element, handler: StaticId, params: any[]) => {
-            if (!lcm.addEffects) {
-                lcm.addEffects = {};
-            }
-            if (!lcm.addEffects[element.id]) {
-                lcm.addEffects[element.id] = [];
-            }
+        addEffect: (handler: StaticId, params: any[]) => {
             const addEffect: AddEffect = { handler, params };
-            lcm.addEffects[element.id].push(addEffect);
+            if (!lcm.addEffects) {
+                lcm.addEffects = []
+            }
+            lcm.addEffects.push(addEffect);
 
             for (const paramId in params) {
                 if (!effectMap[paramId]) {

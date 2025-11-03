@@ -38,7 +38,7 @@ function Counter(solv: Solv): Element {
     const count = solv.newSignal(20);
     const countTxt = solv.newElement('span');
     countTxt.set('class', 'text-5xl font-semibold text-gray-800');
-    solv.addEffect(main, eTxt, [count.id, countTxt.id]);
+    solv.addEffect(eTxt, [count.id, countTxt.id]);
 
     const incBtn = solv.newElement('button');
     incBtn.set('class', 'bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full text-2xl');
@@ -49,7 +49,7 @@ function Counter(solv: Solv): Element {
     resetBtn.set('class', 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full text-2xl disabled:opacity-50 disabled:cursor-not-allowed');
     resetBtn.set('innerHTML', 'reset');
     resetBtn.set('onclick', { handler: aReset, params: [count.id] });
-    solv.addEffect(main, eReset, [count.id, resetBtn.id]);
+    solv.addEffect(eReset, [count.id, resetBtn.id]);
 
     main.setChildren([title, countTxt, incBtn, resetBtn]);
     return main;

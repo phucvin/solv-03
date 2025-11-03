@@ -120,31 +120,26 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 },
             }
         },
-        addEffect: (element: Element, handler: StaticId, params: any[]) => {
+        addEffect: (handler: StaticId, params: any[]) => {
             if (!cm.addEffects) {
-                cm.addEffects = {};
+                cm.addEffects = [];
             }
-            if (!cm.addEffects[element.id]) {
-                cm.addEffects[element.id] = [];
-            }
-            cm.addEffects[element.id].push({ handler, params });
+            cm.addEffects.push({ handler, params });
         }
     };
     await app(solv);
 
-    for (const elementId in cm.addEffects) {
-        for (const addEffect of cm.addEffects[elementId]) {
-            let handler = serverHandlers[addEffect.handler];
-            if (!handler) {
-                handler = sharedHandlers[addEffect.handler];
-            }
-            if (!handler) {
-                throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
-            }
-            let params : any = [...addEffect.params];
-            params.push(solv);
-            handler(...params);
+    for (const addEffect of cm.addEffects || []) {
+        let handler = serverHandlers[addEffect.handler];
+        if (!handler) {
+            handler = sharedHandlers[addEffect.handler];
         }
+        if (!handler) {
+            throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
+        }
+        let params : any = [...addEffect.params];
+        params.push(solv);
+        handler(...params);
     }
 
     return `
