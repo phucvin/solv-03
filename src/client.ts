@@ -76,7 +76,9 @@ export default () => {
         for (const [id, update] of Object.entries(cm.updateElements || {})) {
             getElement(id).applyUpdate(update);
         }
-        // TODO: deleteElements
+        for (const id of cm.deleteDelements || []) {
+            document.getElementById(id)?.remove();
+        }
         for (const [id, value] of Object.entries(cm.setSignals || {})) {
             setSignal(id, value);
         }
