@@ -18,6 +18,7 @@ const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv
         counterMap.countToViewMap = {};
     }
     const view = await Counter({ count }, solv);
+    view.set('style', 'transition: transform 0.5s ease-in-out; transform: translate(-100px, 0px)');
     counterMap.countToViewMap[count.id] = view.id;
     if (!counterMap.viewOrder) {
         counterMap.viewOrder = [];
@@ -25,6 +26,11 @@ const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv
     counterMap.viewOrder.splice(0, 0, view.id);
 
     signal.set(counterMap);
+
+    // Animation
+    requestAnimationFrame(() => {
+        document.getElementById(view.id).style.transform = null;
+    });
 });
 
 export default async function ({ counterMap }: { counterMap: Signal }, solv: Solv): Promise<Element> {
