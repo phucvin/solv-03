@@ -30,7 +30,12 @@ export default () => {
     function applyElementUpdate(id: Id, update: UpdateElement) {
         let node = getElementById(id);
         for (const [name, value] of Object.entries(update.sets || {})) {
-            if (name.startsWith('on')) {
+            if (value === null) {
+                node[name] = undefined;
+                if ((node as any).removeAttribute) {
+                    node.removeAttribute(name);
+                }
+            } else  if (name.startsWith('on')) {
                 node.setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
             } else {
                 node[name] = value;
