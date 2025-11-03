@@ -63,7 +63,7 @@ export default () => {
         for (const [id, update] of Object.entries(cm.updateElements || {})) {
             applyElementUpdate(id, update);
         }
-        for (const id of cm.deleteDelements || []) {
+        for (const id of cm.deleteElements || []) {
             document.getElementById(id)?.remove();
         }
         for (const [id, value] of Object.entries(cm.setSignals || {})) {
@@ -85,7 +85,7 @@ export default () => {
             nextNumber: cm.nextNumber,
             createElements: undefined,
             updateElements: undefined,
-            deleteDelements: undefined,
+            deleteElements: undefined,
             setSignals: undefined,
             addEffects: undefined,
             pendingSignals: undefined,

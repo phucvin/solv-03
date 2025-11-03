@@ -67,7 +67,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         nextNumber: 1,
         createElements: undefined,
         updateElements: undefined,
-        deleteDelements: undefined,
+        deleteElements: undefined,
         setSignals: undefined,
         addEffects: undefined ,
         pendingSignals: undefined, 
