@@ -120,11 +120,9 @@ export default () => {
                 throw new Error('Local Command Map is not ready');
             }
             const id = numberToId(lcm.nextNumber++);
-            if (!lcm.setSignals) {
-                lcm.setSignals = {};
-            }
-            lcm.setSignals[id] = initialValue;
-            return solv.getSignal(id);
+            const signal = solv.getSignal(id);
+            signal.set(initialValue);
+            return signal;
         },
         getElement: (id: Id) => {
             return {
@@ -143,6 +141,7 @@ export default () => {
                 get: () => signalCurrentValues[id],
                 set: (newValue: any) => {
                     // console.log(`signal(id:${id}).set`, newValue);
+
                     signalCurrentValues[id] = newValue;
 
                     if (!lcm.pendingSignals) {
@@ -163,7 +162,7 @@ export default () => {
             }
             lcm.addEffects.push(addEffect);
 
-            for (const paramId in params) {
+            for (const paramId of params) {
                 if (!effectMap[paramId]) {
                     effectMap[paramId] = [];
                 }
@@ -173,6 +172,8 @@ export default () => {
     };
 
     async function resolvePendingSignals() {
+        // console.log('resolvePendingSignals', lcm.pendingSignals, effectMap);
+
         let repeats = 5;
         while (Object.keys(lcm.pendingSignals || {}).length > 0 && --repeats > 0) {
             const pendingSignals = lcm.pendingSignals || {};
