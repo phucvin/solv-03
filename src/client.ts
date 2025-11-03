@@ -195,10 +195,13 @@ export default () => {
 
     function dispatch(action: { handler: StaticId, params: any[] }) {
         // console.log('dispatch', action);
+
         let params = [...action.params];
         params.push(solv);
         sharedHandlers[action.handler](...params);
         resolvePendingSignals();
+
+        //console.log('lcm', JSON.stringify(lcm));
     }
 
     return {
