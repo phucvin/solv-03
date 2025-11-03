@@ -25,4 +25,7 @@ export type UpdateElement = {
     setChildren: Id[] | undefined,
 };
 
+export const DOCUMENT = '$document';
+export const BODY = '$body';
+
 export default {};

@@ -1,4 +1,4 @@
-import { CommandMap } from "./types";
+import { CommandMap } from "./shared";
 import clientFunc from './client';
 
 const clientCode = clientFunc.toString();
@@ -21,6 +21,7 @@ export type Solv = {
 function numberToId(x: number) {
     return `_${x}`;
 }
+
 export async function render(app: (solv: Solv) => Promise<void>) {
     const cm: CommandMap = {
         nextNumber: 1,

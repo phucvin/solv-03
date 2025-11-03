@@ -1,4 +1,4 @@
-import { Id, UpdateElement, CommandMap } from './types';
+import { Id, UpdateElement, CommandMap } from './shared';
 
 type Element = {
     id: Id,
@@ -15,6 +15,8 @@ export default () => {
     const signalMap: { [id: Id]: Signal | null } = {};
     let outgoingSetSignals : { [id: Id]: any } = {};
     const elementById = new Map<Id, HTMLElement>();
+    const DOCUMENT = '$document';
+    const BODY = '$body';
 
     function createElement(id: Id, tag: string) {
         const node = document.createElement(tag);
@@ -33,8 +35,8 @@ export default () => {
     function elementApplyUpdate(this: Element, update: UpdateElement) {
         let node: HTMLElement | Document;
         switch (this.id) {
-            case '$document': node = document; break;
-            case '$body': node = document.body; break;
+            case DOCUMENT: node = document; break;
+            case BODY: node = document.body; break;
             default: node = getElementById(this.id)!; break;
         }
         for (const [name, value] of Object.entries(update.setValues || {})) {
