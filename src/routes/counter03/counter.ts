@@ -61,9 +61,9 @@ async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, s
 registerSharedComponent(
     'import_counter',
     Counter.toString()
-        .replaceAll('eTxt', `'${eTxt}'`)
-        .replaceAll('eDelete', `'${eDelete}'`)
-        .replaceAll('aInc', `'${aInc}'`)
-        .replaceAll('aDelete', `'${aDelete}'`));
+        .replaceAll(/eTxt.*?,/g, `'${eTxt}',`)
+        .replaceAll(/eDelete.*?,/g, `'${eDelete}',`)
+        .replaceAll(/aInc.*?,/g, `'${aInc}',`)
+        .replaceAll(/aDelete.*?,/g, `'${aDelete}',`));
 
 export default Counter;
