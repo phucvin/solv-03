@@ -97,9 +97,9 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
 <html>
     <body></body>
     <script>
-        const __name = () => {};
+        const __name = () => {};  // TODO: find way to get rid of this
         const solv = (${clientCode})();
-        solv.applyCommandMap(JSON.parse('${JSON.stringify(cm)}'))
+        solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
     </script>
 </html
 `;
