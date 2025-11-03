@@ -1,13 +1,9 @@
-import { CommandMap } from "../client/types";
-import client from '../client';
+import { CommandMap } from "./types";
+import clientFunc from './client';
 
-const clientCode = client.toString();
+const clientCode = clientFunc.toString();
 
 export type Id = string;
-
-export function numberToId(x: number) {
-    return `_${x}`;
-}
 
 export type Element = {
     id: Id,
@@ -22,6 +18,9 @@ export type Solv = {
     addEffect: (element: Id, handler: Id, ...params: Id[]) => void,
 };
 
+function numberToId(x: number) {
+    return `_${x}`;
+}
 export async function render(app: (solv: Solv) => Promise<void>) {
     const cm: CommandMap = {
         nextNumber: 1,

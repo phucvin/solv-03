@@ -1,4 +1,15 @@
-import { Id, Signal, UpdateElement, CommandMap, Element } from './types';
+import { Id, UpdateElement, CommandMap } from './types';
+
+type Element = {
+    id: Id,
+    applyUpdate: (update: UpdateElement) => void,
+};
+
+type Signal = {
+    id: Id,
+    currentValue: any,
+    set: (newValue: any) => void,
+};
 
 export default () => {
     const signalMap: { [id: Id]: Signal | null } = {};

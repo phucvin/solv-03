@@ -25,15 +25,4 @@ export type UpdateElement = {
     setChildren: Id[] | undefined,
 };
 
-export type Element = {
-    id: Id,
-    applyUpdate: (update: UpdateElement) => void,
-};
-
-export type Signal = {
-    id: Id,
-    currentValue: any,
-    set: (newValue: any) => void,
-};
-
 export default {};
