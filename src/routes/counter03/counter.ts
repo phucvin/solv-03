@@ -1,4 +1,4 @@
-import { registerSharedHandler } from "../../server";
+import { registerSharedComponent, registerSharedHandler } from "../../server";
 import { Id, Element, Solv, Signal } from "../../shared";
 
 const eTxt = registerSharedHandler((countId: Id, countTxtId: Id, solv: Solv) => {
@@ -27,7 +27,7 @@ const aReset = registerSharedHandler((countId: Id, solv: Solv) => {
     count.set(0);
 });
 
-export default async function ({ count } : { count: Signal }, solv: Solv): Promise<Element> {
+async function Counter({ count }: { count: Signal }, solv: Solv): Promise<Element> {
     const main = solv.newElement('div');
     main.set('class', 'bg-white p-8 rounded-lg shadow-md flex flex-col items-center space-x-4 space-y-4');
 
@@ -53,3 +53,13 @@ export default async function ({ count } : { count: Signal }, solv: Solv): Promi
     main.setChildren([title, countTxt, incBtn, resetBtn]);
     return main;
 }
+
+registerSharedComponent(
+    'import_counter',
+    Counter.toString()
+        .replaceAll('eTxt', `'${eTxt}'`)
+        .replaceAll('eReset', `'${eReset}'`)
+        .replaceAll('aInc', `'${aInc}'`)
+        .replaceAll('aReset', `'${aReset}'`));
+
+export default Counter;
