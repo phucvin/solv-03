@@ -1,7 +1,7 @@
 import { Id, UpdateElement, CommandMap, StaticId, HasId, Signal, Element, Solv } from './shared';
 
 export default () => {
-    const signalCurrentValues : { [id: Id]: any } = {};
+    const signalCurrentValues: { [id: Id]: any } = {};
     const elementById = new Map<Id, WeakRef<HTMLElement>>();
     const DOCUMENT = '$document';
     const BODY = '$body';
@@ -12,12 +12,12 @@ export default () => {
         elementById[id] = new WeakRef(node);
     }
 
-    function getElementById(id: Id) : HTMLElement {
+    function getElementById(id: Id): HTMLElement {
         switch (id) {
             case DOCUMENT: return document;
             case BODY: return document.body;
         }
- 
+
         const node = document.getElementById(id);
         if (node) {
             return node;
@@ -27,7 +27,7 @@ export default () => {
 
     function applyElementUpdate(id: Id, update: UpdateElement) {
         let node = getElementById(id);
-        for (const [name, value] of Object.entries(update.sets|| {})) {
+        for (const [name, value] of Object.entries(update.sets || {})) {
             if (name.startsWith('on')) {
                 node.setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
             } else {
@@ -66,13 +66,12 @@ export default () => {
             updateElements: undefined,
             deleteDelements: undefined,
             setSignals: undefined,
-            addEffects: undefined ,
-            pendingSignals: undefined, 
+            addEffects: cm.addEffects,
+            pendingSignals: undefined,
         };
     }
 
     let lcm: CommandMap;
-    let outgoingSetSignals : { [id: Id]: any } = {};
 
     function numberToId(x: number) {
         if (x < 0) {
@@ -108,7 +107,7 @@ export default () => {
             return {
                 id,
                 set: (name: string, value: any) => {
-                    applyElementUpdate(id, { sets: { [name]: value }, children: undefined});
+                    applyElementUpdate(id, { sets: { [name]: value }, children: undefined });
                 },
                 setChildren: (children: (HasId | Id)[]) => {
                     applyElementUpdate(id, { sets: undefined, children: toIds(children) });
@@ -120,13 +119,17 @@ export default () => {
                 id,
                 get: () => signalCurrentValues[id],
                 set: (newValue: any) => {
-                    console.log(`signal(id:${id}).set`, newValue);
+                    // console.log(`signal(id:${id}).set`, newValue);
                     signalCurrentValues[id] = newValue;
+
                     if (!lcm.pendingSignals) {
                         lcm.pendingSignals = {};
                     }
                     lcm.pendingSignals[id] = (lcm.pendingSignals[id] || 0) + 1;
-                    outgoingSetSignals[id] = newValue;
+                    if (!lcm.setSignals) {
+                        lcm.setSignals = {};
+                    }
+                    lcm.setSignals[id] = newValue;
                 },
             }
         },
@@ -141,15 +144,45 @@ export default () => {
         }
     };
 
-    function dispatch(action: {handler: StaticId, params: any[]}) {
-        console.log('dispatch', action);
+    function resolvePendingSignals() {
+        let repeats = 5;
+        while (Object.keys(lcm.pendingSignals || {}).length > 0 && --repeats > 0) {
+            const pendingSignals = lcm.pendingSignals || {};
+            lcm.pendingSignals = undefined;
+            for (const signalId in pendingSignals) {
+                // TODO: faster with map<signal, handler[]>
+                for (const elementId in lcm.addEffects) {
+                    for (const addEffect of lcm.addEffects[elementId]) {
+                        if (addEffect.params.indexOf(signalId) == -1) {
+                            continue;
+                        }
+                        let handler = this.sharedHandlers[addEffect.handler];
+                        if (!handler) {
+                            throw new Error(`unimplemented: maybe server handler: ${addEffect.handler}`);
+                        }
+                        const params : any[] = [...addEffect.params];
+                        params.push(solv);
+                        handler(...params);
+                    }
+                }
+            }
+        }
+        if (repeats <= 0) {
+            throw new Error('Too many repeats processing pending signals');
+        }
+    }
+
+    function dispatch(action: { handler: StaticId, params: any[] }) {
+        // console.log('dispatch', action);
         let params = [...action.params];
         params.push(solv);
         this.sharedHandlers[action.handler](...params);
+        this.resolvePendingSignals();
     }
 
     return {
         applyCommandMap,
         dispatch,
+        resolvePendingSignals,
     };
 };
