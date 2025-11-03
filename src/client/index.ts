@@ -9,10 +9,13 @@ export default () => {
     }
 
     function elementApplyUpdate(this: Element, update: UpdateElement) {
-        if (update.addOrUpdateValues) {
-            for (const [name, value] of update.addOrUpdateValues.entries()) {
-
-            }
+        let node: any;
+        switch (this.id) {
+            case '$document': node = document; break;
+            default: node = document.getElementById(this.id)!; break;
+        }
+        for (const [name, value] of Object.entries(update.setValues)) {
+            node[name] = value;
         }
     }
 
@@ -38,11 +41,11 @@ export default () => {
         for (const ce of cm.createElements) {
             createElement(ce.id, ce.tag);
         }
-        for (const [id, update] of cm.updateElements.entries()) {
+        for (const [id, update] of Object.entries(cm.updateElements)) {
             getElement(id).applyUpdate(update);
         }
         // TODO: deleteElements
-        for (const [id, value] of cm.setSignals.entries()) {
+        for (const [id, value] of Object.entries(cm.setSignals)) {
             setSignal(id, value);
         }
     }

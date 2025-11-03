@@ -8,12 +8,12 @@ export type CreateElement = {
 export type CommandMap = {
     createElements: CreateElement[],
     deleteDelements: Id[],
-    updateElements: Map<Id, UpdateElement>,
-    setSignals: Map<Id, any>,
+    updateElements: { [key: Id] : UpdateElement },
+    setSignals: { [key: Id]: any },
 };
 
 export type UpdateElement = {
-    addOrUpdateValues: Map<string, any> | null,
+    setValues: { [key: string]: any },
     removeValues: string[],
     setChildren: Id[] | undefined,
 };
