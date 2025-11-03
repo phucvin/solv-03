@@ -59,8 +59,9 @@ export default async function (solv: Solv) {
     solv.getElement(DOCUMENT).set('title', 'Counter 02');
 
     const body = solv.getElement(BODY);
-    body.set('class', 'flex items-center justify-center min-h-screen bg-gray-100');
+    body.set('class', 'flex flex-col space-y-4 items-center justify-center min-h-screen bg-gray-100');
 
-    const counter = Counter(solv);
-    body.setChildren([counter.id]);
+    const counter1 = Counter(solv);
+    const counter2 = Counter(solv);
+    body.setChildren([counter1, counter2]);
 }
