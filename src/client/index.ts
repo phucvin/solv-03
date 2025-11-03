@@ -5,17 +5,27 @@ export default () => {
     let outgoingSetSignals = new Map<Id, any>();
 
     function createElement(id: Id, tag: string) {
-
+        const node = document.createElement(tag);
+        node.id = id;
     }
 
     function elementApplyUpdate(this: Element, update: UpdateElement) {
-        let node: any;
+        let node: HTMLElement | Document;
         switch (this.id) {
             case '$document': node = document; break;
+            case '$body': node = document.body; break;
             default: node = document.getElementById(this.id)!; break;
         }
         for (const [name, value] of Object.entries(update.setValues)) {
             node[name] = value;
+            node.setAttribute(name, value);
+        }
+        if (update.setChildren) {
+            let childNodes: HTMLElement[] = [];
+            for (const childId of update.setChildren) {
+                childNodes.push(document.getElementById(childId)!);
+            }
+            node.replaceChildren(...childNodes);
         }
     }
 
