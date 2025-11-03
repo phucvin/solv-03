@@ -24,19 +24,32 @@ export type Solv = {
 };
 
 let nextStaticNumber = -1;
-const registeredServerHandlers : { [staticId: StaticId]: any } = {};
-const registeredSharedHandlers : { [staticId: StaticId]: any } = {};
+const serverHandlers : { [staticId: StaticId]: any } = {};
+const sharedHandlers : { [staticId: StaticId]: any } = {};
 
 export function registerServerHandler(handler: any) : StaticId {
     const staticId = numberToId(nextStaticNumber--);
-    registeredServerHandlers[staticId] = handler;
+    serverHandlers[staticId] = handler;
     return staticId;
 }
 
 export function registerSharedHandler(handler: any) : StaticId {
     const staticId = numberToId(nextStaticNumber--);
-    registeredSharedHandlers[staticId] = handler;
+    sharedHandlers[staticId] = handler;
     return staticId;
+}
+
+let sharedHandlerCode : string | null = null;
+
+function getSharedHandlerCode() {
+    if (sharedHandlerCode === null) {
+        sharedHandlerCode = 'const sharedHandlers = {\n';
+        for (const staticId of Object.keys(sharedHandlers)) {
+            sharedHandlerCode += `'${staticId}': ${sharedHandlers[staticId].toString()},`
+        }
+        sharedHandlerCode += '}';
+    }
+    return sharedHandlerCode;
 }
 
 function numberToId(x: number) {
@@ -141,9 +154,9 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
 
     for (const elementId in cm.addEffects) {
         for (const addEffect of cm.addEffects[elementId]) {
-            let handler = registeredServerHandlers[addEffect.handler];
+            let handler = serverHandlers[addEffect.handler];
             if (!handler) {
-                handler = registeredSharedHandlers[addEffect.handler];
+                handler = sharedHandlers[addEffect.handler];
             }
             if (!handler) {
                 throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
@@ -161,6 +174,8 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <head>
     <body></body>
     <script>
+        ${getSharedHandlerCode()}
+
         const __name = () => {};  // TODO: find way to get rid of this
         const solv = (${clientCode})();
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));

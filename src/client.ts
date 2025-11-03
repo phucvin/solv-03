@@ -40,9 +40,13 @@ export default () => {
             default: node = getElementById(this.id)!; break;
         }
         for (const [name, value] of Object.entries(update.sets|| {})) {
-            node[name] = value;
-            if ((node as HTMLElement).setAttribute) {
-                (node as HTMLElement).setAttribute(name, value);
+            if (name.startsWith('on')) {
+                (node as HTMLElement).setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
+            } else {
+                node[name] = value;
+                if ((node as HTMLElement).setAttribute) {
+                    (node as HTMLElement).setAttribute(name, value);
+                }
             }
         }
         if (update.children) {
@@ -87,7 +91,12 @@ export default () => {
         }
     }
 
+    function dispatch(action: any) {
+        console.log(action);
+    }
+
     return {
         applyCommandMap,
+        dispatch,
     };
 };
