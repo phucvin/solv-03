@@ -1,4 +1,27 @@
 export type Id = string;
+export type HasId = { id: string };
+
+export type StaticId = string;
+
+export type Element = {
+    id: Id,
+    set: (name: string, value: any) => void,
+    setChildren: (children: (HasId | Id)[]) => void,
+};
+
+export type Signal = {
+    id: Id,
+    get: () => any,
+    set: (newValue: any) => void,
+};
+
+export type Solv = {
+    newElement: (tag: string) => Element,
+    newSignal: (initialValue: any) => Signal,
+    getElement: (id: Id) => Element,
+    getSignal: (id: Id) => Signal,
+    addEffect: (element: Element, handler: StaticId, params: any[]) => void,
+};
 
 export type CreateElement = {
     id: Id,
@@ -13,16 +36,16 @@ export type AddEffect = {
 export type CommandMap = {
     nextNumber: number | undefined,
     createElements: CreateElement[] | undefined,
-    deleteDelements: Id[] | undefined,
     updateElements: { [id: Id] : UpdateElement } | undefined,
+    deleteDelements: Id[] | undefined,
     setSignals: { [id: Id]: any } | undefined,
     addEffects: { [elementId: Id]: AddEffect[] } | undefined,
+    pendingSignals: { [id: Id]: number } | undefined,
 };
 
 export type UpdateElement = {
-    setValues: { [key: string]: any } | undefined,
-    removeValues: string[] | undefined,
-    setChildren: Id[] | undefined,
+    sets: { [key: string]: any } | undefined,
+    children: Id[] | undefined,
 };
 
 export const DOCUMENT = '$document';

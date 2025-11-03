@@ -1,36 +1,78 @@
-import { CommandMap } from "./shared";
+import { Id, HasId, StaticId, CommandMap, Solv, Element } from "./shared";
 import clientFunc from './client';
 
 const clientCode = clientFunc.toString();
 
-export type Id = string;
+let nextStaticNumber = -1;
+const serverHandlers : { [staticId: StaticId]: any } = {};
+const sharedHandlers : { [staticId: StaticId]: any } = {};
 
-export type Element = {
-    id: Id,
-    setValue: (name: string, value: any) => void,
-    setChildren: (children: Id[] | null) => void,
-};
-
-export type Solv = {
-    newElement: (tag: string) => Element,
-    newSignal: (initialValue: any) => Id,
-    getElement: (id: Id) => Element,
-    addEffect: (element: Id, handler: Id, ...params: Id[]) => void,
-};
-
-function numberToId(x: number) {
-    return `_${x}`;
+export function registerServerHandler(handler: any) : StaticId {
+    const staticId = numberToId(nextStaticNumber--);
+    serverHandlers[staticId] = handler;
+    return staticId;
 }
 
-export async function render(app: (solv: Solv) => Promise<void>) {
+export function registerSharedHandler(handler: any) : StaticId {
+    const staticId = numberToId(nextStaticNumber--);
+    sharedHandlers[staticId] = handler;
+    return staticId;
+}
+
+let sharedHandlerCode : string | null = null;
+
+function getSharedHandlerCode() {
+    if (sharedHandlerCode === null) {
+        sharedHandlerCode = 'const sharedHandlers = {\n';
+        for (const staticId of Object.keys(sharedHandlers)) {
+            sharedHandlerCode += `'${staticId}': ${sharedHandlers[staticId].toString()},`
+        }
+        sharedHandlerCode += '};';
+    }
+    return sharedHandlerCode;
+}
+
+function numberToId(x: number) {
+    if (x < 0) {
+        return `@${-x}`;
+    } else {
+        return `_${x}`;
+    }
+}
+
+function toIds(xs: (HasId | Id)[]) {
+    const ids: Id[] = [];
+    for (const x of xs) {
+        ids.push(typeof x === 'string' ? x : x?.id);
+    }
+    return ids;
+}
+
+function initUpdateElements(cm: CommandMap, id: Id) {
+    if (!cm.updateElements) {
+        cm.updateElements = {};
+    }
+    if (!cm.updateElements[id]) {
+        cm.updateElements[id] = {
+            sets: undefined,
+            children: undefined,
+        };
+    }
+}
+
+export async function serve(app: (solv: Solv) => Promise<void>) {
+    const signalCurrentValues : { [id: Id]: any } = {};
+
     const cm: CommandMap = {
         nextNumber: 1,
-        createElements: [],
-        deleteDelements: [],
-        updateElements: {},
-        setSignals: {},
-        addEffects: {},
+        createElements: undefined,
+        updateElements: undefined,
+        deleteDelements: undefined,
+        setSignals: undefined,
+        addEffects: undefined ,
+        pendingSignals: undefined, 
     };
+
     const solv: Solv = {
         newElement: (tag: string) => {
             const id = numberToId(cm.nextNumber!++);
@@ -46,60 +88,77 @@ export async function render(app: (solv: Solv) => Promise<void>) {
                 cm.setSignals = {};
             }
             cm.setSignals[id] = initialValue;
-            return id;
+            signalCurrentValues[id] = initialValue;
+            return solv.getSignal(id);
         },
         getElement: (id: Id) => {
             return {
                 id,
-                setValue: (name: string, value: any) => {
-                    if (!cm.updateElements) {
-                        cm.updateElements = {};
+                set: (name: string, value: any) => {
+                    initUpdateElements(cm, id);
+                    if (!cm.updateElements![id].sets) {
+                        cm.updateElements![id].sets = {};
                     }
-                    if (!cm.updateElements[id]) {
-                        cm.updateElements[id] = {
-                            setValues: undefined,
-                            removeValues: undefined,
-                            setChildren: undefined,
-                        };
-                    }
-                    if (!cm.updateElements[id].setValues) {
-                        cm.updateElements[id].setValues = {};
-                    }
-                    cm.updateElements[id]!.setValues![name] = value;
+                    cm.updateElements![id]!.sets![name] = value;
                 },
-                setChildren: (children: Id[] | null) => {
-                    if (!cm.updateElements) {
-                        cm.updateElements = {};
-                    }
-                    if (!cm.updateElements[id]) {
-                        cm.updateElements[id] = {
-                            setValues: undefined,
-                            removeValues: undefined,
-                            setChildren: undefined,
-                        };
-                    }
-                    cm.updateElements[id]!.setChildren = children || undefined;
+                setChildren: (children: (HasId | Id)[]) => {
+                    initUpdateElements(cm, id); 
+                    cm.updateElements![id]!.children = toIds(children);
                 },
             };
         },
-        addEffect: (element: Id, handler: Id, ...params: Id[]) => {
+        getSignal: (id: Id) => {
+            return {
+                id,
+                get: () => signalCurrentValues[id],
+                set: (newValue: any) => {
+                    signalCurrentValues[id] = newValue;
+                    if (!cm.pendingSignals) {
+                        cm.pendingSignals = {};
+                    }
+                    cm.pendingSignals[id] = (cm.pendingSignals[id] || 0) + 1;
+                },
+            }
+        },
+        addEffect: (element: Element, handler: StaticId, params: any[]) => {
             if (!cm.addEffects) {
                 cm.addEffects = {};
             }
-            if (!cm.addEffects[element]) {
-                cm.addEffects[element] = [];
+            if (!cm.addEffects[element.id]) {
+                cm.addEffects[element.id] = [];
             }
-            cm.addEffects[element].push({ handler: handler, params });
+            cm.addEffects[element.id].push({ handler, params });
         }
     };
     await app(solv);
+
+    for (const elementId in cm.addEffects) {
+        for (const addEffect of cm.addEffects[elementId]) {
+            let handler = serverHandlers[addEffect.handler];
+            if (!handler) {
+                handler = sharedHandlers[addEffect.handler];
+            }
+            if (!handler) {
+                throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
+            }
+            let params : any = [...addEffect.params];
+            params.push(solv);
+            handler(...params);
+        }
+    }
+
     return `
 <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <head>
     <body></body>
     <script>
-        const __name = () => {};
+        const __name = (a, b) => a;  // TODO: find way to get rid of this
         const solv = (${clientCode})();
-        solv.applyCommandMap(JSON.parse('${JSON.stringify(cm)}'))
+        solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
+
+        ${getSharedHandlerCode()}
     </script>
 </html
 `;
