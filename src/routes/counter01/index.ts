@@ -64,9 +64,9 @@ export async function render(app: (solv: Solv) => Promise<void>) {
                     }
                     if (!cm.updateElements[id]) {
                         cm.updateElements[id] = {
-                            setValues: null,
-                            removeValues: null,
-                            setChildren: null,
+                            setValues: undefined,
+                            removeValues: undefined,
+                            setChildren: undefined,
                         };
                     }
                     if (!cm.updateElements[id].setValues) {
@@ -80,12 +80,12 @@ export async function render(app: (solv: Solv) => Promise<void>) {
                     }
                     if (!cm.updateElements[id]) {
                         cm.updateElements[id] = {
-                            setValues: null,
-                            removeValues: null,
-                            setChildren: null,
+                            setValues: undefined,
+                            removeValues: undefined,
+                            setChildren: undefined,
                         };
                     }
-                    cm.updateElements[id].setChildren = children;
+                    cm.updateElements[id]!.setChildren = children || undefined;
                 },
             };
         },

@@ -11,18 +11,18 @@ export type AddEffect = {
 };
 
 export type CommandMap = {
-    nextNumber: number | null,
-    createElements: CreateElement[] | null,
-    deleteDelements: Id[] | null,
-    updateElements: { [id: Id] : UpdateElement } | null,
-    setSignals: { [id: Id]: any } | null,
-    addEffects: { [elementId: Id]: AddEffect[] } | null,
+    nextNumber: number | undefined,
+    createElements: CreateElement[] | undefined,
+    deleteDelements: Id[] | undefined,
+    updateElements: { [id: Id] : UpdateElement } | undefined,
+    setSignals: { [id: Id]: any } | undefined,
+    addEffects: { [elementId: Id]: AddEffect[] } | undefined,
 };
 
 export type UpdateElement = {
-    setValues: { [key: string]: any } | null,
-    removeValues: string[] | null,
-    setChildren: Id[] | null,
+    setValues: { [key: string]: any } | undefined,
+    removeValues: string[] | undefined,
+    setChildren: Id[] | undefined,
 };
 
 export type Element = {
