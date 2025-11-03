@@ -1,27 +1,7 @@
-import { Id, HasId, StaticId, CommandMap } from "./shared";
+import { Id, HasId, StaticId, CommandMap, Solv, Element } from "./shared";
 import clientFunc from './client';
 
 const clientCode = clientFunc.toString();
-
-export type Element = {
-    id: Id,
-    set: (name: string, value: any) => void,
-    setChildren: (children: (HasId | Id)[]) => void,
-};
-
-export type Signal = {
-    id: Id,
-    get: () => any,
-    set: (newValue: any) => void,
-};
-
-export type Solv = {
-    newElement: (tag: string) => Element,
-    newSignal: (initialValue: any) => Signal,
-    getElement: (id: Id) => Element,
-    getSignal: (id: Id) => Signal,
-    addEffect: (element: Element, handler: StaticId, params: any[]) => void,
-};
 
 let nextStaticNumber = -1;
 const serverHandlers : { [staticId: StaticId]: any } = {};
@@ -43,7 +23,7 @@ let sharedHandlerCode : string | null = null;
 
 function getSharedHandlerCode() {
     if (sharedHandlerCode === null) {
-        sharedHandlerCode = 'const sharedHandlers = {\n';
+        sharedHandlerCode = 'solv.sharedHandlers = {\n';
         for (const staticId of Object.keys(sharedHandlers)) {
             sharedHandlerCode += `'${staticId}': ${sharedHandlers[staticId].toString()},`
         }
@@ -174,11 +154,11 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <head>
     <body></body>
     <script>
-        ${getSharedHandlerCode()}
-
-        const __name = () => {};  // TODO: find way to get rid of this
+        const __name = (a, b) => a;  // TODO: find way to get rid of this
         const solv = (${clientCode})();
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
+
+        ${getSharedHandlerCode()}
     </script>
 </html
 `;

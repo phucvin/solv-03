@@ -1,5 +1,5 @@
-import { Element, Solv, registerSharedHandler } from "../../server";
-import { BODY, DOCUMENT, Id } from "../../shared";
+import { registerSharedHandler } from "../../server";
+import { BODY, DOCUMENT, Id, Element, Solv  } from "../../shared";
 
 const eTxt = registerSharedHandler((countId: Id, countTxtId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);

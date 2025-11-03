@@ -1,19 +1,7 @@
-import { Id, UpdateElement, CommandMap } from './shared';
-
-type Element = {
-    id: Id,
-    applyUpdate: (update: UpdateElement) => void,
-};
-
-type Signal = {
-    id: Id,
-    currentValue: any,
-    set: (newValue: any) => void,
-};
+import { Id, UpdateElement, CommandMap, StaticId, HasId, Signal, Element, Solv } from './shared';
 
 export default () => {
-    const signalMap: { [id: Id]: Signal | null } = {};
-    let outgoingSetSignals : { [id: Id]: any } = {};
+    const signalCurrentValues : { [id: Id]: any } = {};
     const elementById = new Map<Id, WeakRef<HTMLElement>>();
     const DOCUMENT = '$document';
     const BODY = '$body';
@@ -25,6 +13,11 @@ export default () => {
     }
 
     function getElementById(id: Id) : HTMLElement {
+        switch (id) {
+            case DOCUMENT: return document;
+            case BODY: return document.body;
+        }
+ 
         const node = document.getElementById(id);
         if (node) {
             return node;
@@ -32,20 +25,15 @@ export default () => {
         return elementById[id]!.deref();
     }
 
-    function elementApplyUpdate(this: Element, update: UpdateElement) {
-        let node: HTMLElement | Document;
-        switch (this.id) {
-            case DOCUMENT: node = document; break;
-            case BODY: node = document.body; break;
-            default: node = getElementById(this.id)!; break;
-        }
+    function applyElementUpdate(id: Id, update: UpdateElement) {
+        let node = getElementById(id);
         for (const [name, value] of Object.entries(update.sets|| {})) {
             if (name.startsWith('on')) {
-                (node as HTMLElement).setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
+                node.setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
             } else {
                 node[name] = value;
-                if ((node as HTMLElement).setAttribute) {
-                    (node as HTMLElement).setAttribute(name, value);
+                if ((node as any).setAttribute) {
+                    node.setAttribute(name, value);
                 }
             }
         }
@@ -58,41 +46,106 @@ export default () => {
         }
     }
 
-    function getElement(id: Id): Element {
-        return {
-            id,
-            applyUpdate: elementApplyUpdate,
-        };
-    }
-
-    function signalSet(this: Signal, newValue: any) {
-        outgoingSetSignals[this.id] = newValue;
-    }
-
-    function setSignal(id: Id, value: any) {
-        if (!signalMap[id]) {
-            signalMap[id] = { id, currentValue: value, set: signalSet };
-        }
-        signalMap[id]!.set(value);
-    }
-
     function applyCommandMap(cm: CommandMap) {
         for (const ce of cm.createElements || []) {
             createElement(ce.id, ce.tag);
         }
         for (const [id, update] of Object.entries(cm.updateElements || {})) {
-            getElement(id).applyUpdate(update);
+            applyElementUpdate(id, update);
         }
         for (const id of cm.deleteDelements || []) {
             document.getElementById(id)?.remove();
         }
         for (const [id, value] of Object.entries(cm.setSignals || {})) {
-            setSignal(id, value);
+            signalCurrentValues[id] = value;
+        }
+
+        lcm = {
+            nextNumber: cm.nextNumber,
+            createElements: undefined,
+            updateElements: undefined,
+            deleteDelements: undefined,
+            setSignals: undefined,
+            addEffects: undefined ,
+            pendingSignals: undefined, 
+        };
+    }
+
+    let lcm: CommandMap;
+    let outgoingSetSignals : { [id: Id]: any } = {};
+
+    function numberToId(x: number) {
+        if (x < 0) {
+            return `@${-x}`;
+        } else {
+            return `_${x}`;
         }
     }
 
-    function dispatch(action: any) {
-        console.log(action);
+    function toIds(xs: (HasId | Id)[]) {
+        const ids: Id[] = [];
+        for (const x of xs) {
+            ids.push(typeof x === 'string' ? x : x?.id);
+        }
+        return ids;
+    }
+
+    const solv: Solv = {
+        newElement: (tag: string) => {
+            const id = numberToId(lcm.nextNumber!++);
+            createElement(id, tag);
+            return solv.getElement(id);
+        },
+        newSignal: (initialValue: any) => {
+            const id = numberToId(lcm.nextNumber!++);
+            if (!lcm.setSignals) {
+                lcm.setSignals = {};
+            }
+            lcm.setSignals[id] = initialValue;
+            return solv.getSignal(id);
+        },
+        getElement: (id: Id) => {
+            return {
+                id,
+                set: (name: string, value: any) => {
+                    applyElementUpdate(id, { sets: { [name]: value }, children: undefined});
+                },
+                setChildren: (children: (HasId | Id)[]) => {
+                    applyElementUpdate(id, { sets: undefined, children: toIds(children) });
+                },
+            };
+        },
+        getSignal: (id: Id) => {
+            return {
+                id,
+                get: () => signalCurrentValues[id],
+                set: (newValue: any) => {
+                    console.log(`signal(id:${id}).set`, newValue);
+                    signalCurrentValues[id] = newValue;
+                    if (!lcm.pendingSignals) {
+                        lcm.pendingSignals = {};
+                    }
+                    lcm.pendingSignals[id] = (lcm.pendingSignals[id] || 0) + 1;
+                    outgoingSetSignals[id] = newValue;
+                },
+            }
+        },
+        addEffect: (element: Element, handler: StaticId, params: any[]) => {
+            if (!lcm.addEffects) {
+                lcm.addEffects = {};
+            }
+            if (!lcm.addEffects[element.id]) {
+                lcm.addEffects[element.id] = [];
+            }
+            lcm.addEffects[element.id].push({ handler, params });
+        }
+    };
+
+    function dispatch(action: {handler: StaticId, params: any[]}) {
+        console.log('dispatch', action);
+        let params = [...action.params];
+        params.push(solv);
+        this.sharedHandlers[action.handler](...params);
     }
 
     return {
