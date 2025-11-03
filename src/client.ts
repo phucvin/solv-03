@@ -41,6 +41,9 @@ export default () => {
         }
         for (const [name, value] of Object.entries(update.sets|| {})) {
             node[name] = value;
+            if ((node as HTMLElement).setAttribute) {
+                (node as HTMLElement).setAttribute(name, value);
+            }
         }
         if (update.children) {
             let childNodes: HTMLElement[] = [];

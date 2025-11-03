@@ -156,6 +156,9 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
 
     return `
 <html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <head>
     <body></body>
     <script>
         const __name = () => {};  // TODO: find way to get rid of this
