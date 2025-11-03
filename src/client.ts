@@ -59,7 +59,7 @@ export default () => {
     }
 
     function signalSet(this: Signal, newValue: any) {
-        outgoingSetSignals.set(this.id, newValue);
+        outgoingSetSignals[this.id] = newValue;
     }
 
     function setSignal(id: Id, value: any) {

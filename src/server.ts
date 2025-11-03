@@ -11,17 +11,40 @@ export type Element = {
 
 export type Signal = {
     id: Id,
+    get: () => any,
+    set: (newValue: any) => void,
 };
 
 export type Solv = {
     newElement: (tag: string) => Element,
     newSignal: (initialValue: any) => Signal,
     getElement: (id: Id) => Element,
-    addEffect: (element: Element, handler: StaticId, ...params: (Id | HasId)[]) => void,
+    getSignal: (id: Id) => Signal,
+    addEffect: (element: Element, handler: StaticId, params: (Id | HasId)[]) => void,
 };
 
+let nextStaticNumber = -1;
+const registeredServerHandlers : { [staticId: StaticId]: any } = {};
+const registeredSharedHandlers : { [staticId: StaticId]: any } = {};
+
+export function registerServerHandler(handler: any) : StaticId {
+    const staticId = numberToId(nextStaticNumber--);
+    registeredServerHandlers[staticId] = handler;
+    return staticId;
+}
+
+export function registerSharedHandler(handler: any) : StaticId {
+    const staticId = numberToId(nextStaticNumber--);
+    registeredSharedHandlers[staticId] = handler;
+    return staticId;
+}
+
 function numberToId(x: number) {
-    return `_${x}`;
+    if (x < 0) {
+        return `@${-x}`;
+    } else {
+        return `_${x}`;
+    }
 }
 
 function toId(x: HasId | Id) {
@@ -57,14 +80,18 @@ function initUpdateElements(cm: CommandMap, element: Id | HasId) {
 }
 
 export async function serve(app: (solv: Solv) => Promise<void>) {
+    const signalCurrentValues : { [id: Id]: any } = {};
+
     const cm: CommandMap = {
         nextNumber: 1,
-        createElements: [],
-        deleteDelements: [],
-        updateElements: {},
-        setSignals: {},
-        addEffects: {},
+        createElements: undefined,
+        updateElements: undefined,
+        deleteDelements: undefined,
+        setSignals: undefined,
+        addEffects: undefined ,
+        pendingSignals: undefined, 
     };
+
     const solv: Solv = {
         newElement: (tag: string) => {
             const id = numberToId(cm.nextNumber!++);
@@ -80,7 +107,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 cm.setSignals = {};
             }
             cm.setSignals[id] = initialValue;
-            return { id };
+            return solv.getSignal(id);
         },
         getElement: (id: Id) => {
             return {
@@ -98,7 +125,20 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 },
             };
         },
-        addEffect: (element: Element, handler: StaticId, ...params: (Id | HasId)[]) => {
+        getSignal: (id: Id) => {
+            return {
+                id,
+                get: () => signalCurrentValues[id],
+                set: (newValue: any) => {
+                    signalCurrentValues[id] = newValue;
+                    if (!cm.pendingSignals) {
+                        cm.pendingSignals = {};
+                    }
+                    cm.pendingSignals[id] = (cm.pendingSignals[id] || 0) + 1;
+                },
+            }
+        },
+        addEffect: (element: Element, handler: StaticId, params: (Id | HasId)[]) => {
             if (!cm.addEffects) {
                 cm.addEffects = {};
             }
@@ -109,6 +149,25 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         }
     };
     await app(solv);
+
+    for (const elementId in cm.addEffects) {
+        for (const addEffect of cm.addEffects[elementId]) {
+            let handler = registeredServerHandlers[addEffect.handler];
+            if (!handler) {
+                handler = registerSharedHandler[addEffect.handler];
+            }
+            if (!handler) {
+                throw new Error(`Handler not found whie processing added effects`);
+            }
+            let params : any = [];
+            for (const paramId in addEffect.params) {
+                params.push(solv.getSignal(paramId));
+            }
+            params.push(solv);
+            handler(...params)
+        }
+    }
+
     return `
 <html>
     <body></body>

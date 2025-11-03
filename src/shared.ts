@@ -16,10 +16,11 @@ export type AddEffect = {
 export type CommandMap = {
     nextNumber: number | undefined,
     createElements: CreateElement[] | undefined,
-    deleteDelements: Id[] | undefined,
     updateElements: { [id: Id] : UpdateElement } | undefined,
+    deleteDelements: Id[] | undefined,
     setSignals: { [id: Id]: any } | undefined,
     addEffects: { [elementId: Id]: AddEffect[] } | undefined,
+    pendingSignals: { [id: Id]: number } | undefined,
 };
 
 export type UpdateElement = {
@@ -29,5 +30,6 @@ export type UpdateElement = {
 
 export const DOCUMENT = '$document';
 export const BODY = '$body';
+export const INVOKE_HANDLER = '!';
 
 export default {};
