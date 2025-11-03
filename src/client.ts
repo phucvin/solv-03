@@ -46,10 +46,21 @@ export default () => {
         }
         if (update.children) {
             let childNodes: HTMLElement[] = [];
+            const childrenToRemove: Set<HTMLElement> = new Set(node.children);
             for (const childId of update.children) {
-                childNodes.push(findElementById(childId)!);
+                const child = findElementById(childId)!;
+                childNodes.push(child);
+                childrenToRemove.delete(child);
             }
-            node.replaceChildren(...childNodes);
+            for (const childToRemove of childrenToRemove) {
+                childToRemove.remove();
+            }
+            childNodes.forEach((element, index) => {
+                const currentChild = node.children[index];
+                if (currentChild !== element) {
+                    node.insertBefore(element, currentChild || null);
+                }
+            });
         }
     }
 
