@@ -59,8 +59,9 @@ async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, s
 }
 
 registerSharedComponent(
-    'import_counter',
+    'counter',
     Counter.toString()
+        // Need to use regex due to variable renaming when compiling for wokers
         .replaceAll(/eTxt.*?,/g, `'${eTxt}',`)
         .replaceAll(/eDelete.*?,/g, `'${eDelete}',`)
         .replaceAll(/aInc.*?,/g, `'${aInc}',`)

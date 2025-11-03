@@ -221,5 +221,7 @@ export default () => {
     return {
         applyCommandMap,
         dispatch,
+        signalCurrentValues,
+        effectMap,
     };
 };

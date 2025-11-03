@@ -33,7 +33,9 @@ function getSharedComponentAndHandlerCode() {
 
     let s = '';
     for (const [name, code] of Object.entries(sharedComponentCode)) {
-        s += `const ${name} = { default: ${code} };\n`
+        s += `const import_${name} = { default: ${code} };\n`;
+        // Another alias used by code compiled by workers
+        s += `const ${name}_default = import_${name}.default;\n`;
     }
     s += '\nconst sharedHandlers = {\n';
     for (const [staticId, handler] of Object.entries(sharedHandlers)) {
