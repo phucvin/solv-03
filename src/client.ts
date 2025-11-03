@@ -1,4 +1,4 @@
-import { Id, UpdateElement, CommandMap, StaticId, HasId, Element, Solv } from './shared';
+import { Id, UpdateElement, CommandMap, StaticId, HasId, Element, Solv, AddEffect } from './shared';
 
 declare const sharedHandlers: { [staticId: StaticId]: any };
 
@@ -48,6 +48,9 @@ export default () => {
         }
     }
 
+    let lcm: CommandMap;
+    const effectMap: { [signalId: Id]: AddEffect[] } = {};
+
     function applyCommandMap(cm: CommandMap) {
         for (const ce of cm.createElements || []) {
             createElement(ce.id, ce.tag);
@@ -61,6 +64,16 @@ export default () => {
         for (const [id, value] of Object.entries(cm.setSignals || {})) {
             signalCurrentValues[id] = value;
         }
+        for (const elementId in cm.addEffects || []) {
+            for (const addEffect of cm.addEffects![elementId] || []) {
+                for (const paramId of addEffect.params) {
+                    if (!effectMap[paramId]) {
+                        effectMap[paramId] = [];
+                    }
+                    effectMap[paramId].push(addEffect);
+                }
+            }
+        }
 
         lcm = {
             nextNumber: cm.nextNumber,
@@ -68,12 +81,10 @@ export default () => {
             updateElements: undefined,
             deleteDelements: undefined,
             setSignals: undefined,
-            addEffects: cm.addEffects,
+            addEffects: undefined,
             pendingSignals: undefined,
         };
     }
-
-    let lcm: CommandMap;
 
     function numberToId(x: number) {
         if (x < 0) {
@@ -93,12 +104,18 @@ export default () => {
 
     const solv: Solv = {
         newElement: (tag: string) => {
-            const id = numberToId(lcm.nextNumber!++);
+            if (lcm.nextNumber === undefined) {
+                throw new Error('Local Command Map is not ready');
+            }
+            const id = numberToId(lcm.nextNumber++);
             createElement(id, tag);
             return solv.getElement(id);
         },
         newSignal: (initialValue: any) => {
-            const id = numberToId(lcm.nextNumber!++);
+            if (lcm.nextNumber === undefined) {
+                throw new Error('Local Command Map is not ready');
+            }
+            const id = numberToId(lcm.nextNumber++);
             if (!lcm.setSignals) {
                 lcm.setSignals = {};
             }
@@ -142,7 +159,15 @@ export default () => {
             if (!lcm.addEffects[element.id]) {
                 lcm.addEffects[element.id] = [];
             }
-            lcm.addEffects[element.id].push({ handler, params });
+            const addEffect: AddEffect = { handler, params };
+            lcm.addEffects[element.id].push(addEffect);
+
+            for (const paramId in params) {
+                if (!effectMap[paramId]) {
+                    effectMap[paramId] = [];
+                }
+                effectMap[paramId].push(addEffect);
+            }
         }
     };
 
@@ -152,20 +177,14 @@ export default () => {
             const pendingSignals = lcm.pendingSignals || {};
             lcm.pendingSignals = undefined;
             for (const signalId in pendingSignals) {
-                // TODO: faster with map<signal, handler[]>
-                for (const elementId in lcm.addEffects) {
-                    for (const addEffect of lcm.addEffects[elementId]) {
-                        if (addEffect.params.indexOf(signalId) == -1) {
-                            continue;
-                        }
-                        let handler = sharedHandlers[addEffect.handler];
-                        if (!handler) {
-                            throw new Error(`unimplemented: maybe server handler: ${addEffect.handler}`);
-                        }
-                        const params : any[] = [...addEffect.params];
-                        params.push(solv);
-                        handler(...params);
+                for (const effect of effectMap[signalId] || []) {
+                    let handler = sharedHandlers[effect.handler];
+                    if (!handler) {
+                        throw new Error(`unimplemented: maybe server handler: ${effect.handler}`);
                     }
+                    const params: any[] = [...effect.params];
+                    params.push(solv);
+                    handler(...params);
                 }
             }
         }
