@@ -172,7 +172,7 @@ export default () => {
         }
     };
 
-    function resolvePendingSignals() {
+    async function resolvePendingSignals() {
         let repeats = 5;
         while (Object.keys(lcm.pendingSignals || {}).length > 0 && --repeats > 0) {
             const pendingSignals = lcm.pendingSignals || {};
@@ -185,7 +185,7 @@ export default () => {
                     }
                     const params: any[] = [...effect.params];
                     params.push(solv);
-                    handler(...params);
+                    await handler(...params);
                 }
             }
         }
@@ -195,13 +195,13 @@ export default () => {
         tempElementMap.clear();
     }
 
-    function dispatch(action: { handler: StaticId, params: any[] }) {
+    async function dispatch(action: { handler: StaticId, params: any[] }) {
         // console.log('dispatch', action);
 
         let params = [...action.params];
         params.push(solv);
-        sharedHandlers[action.handler](...params);
-        resolvePendingSignals();
+        await sharedHandlers[action.handler](...params);
+        await resolvePendingSignals();
 
         //console.log('lcm', JSON.stringify(lcm));
     }

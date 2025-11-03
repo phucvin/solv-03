@@ -139,7 +139,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         }
         let params : any = [...addEffect.params];
         params.push(solv);
-        handler(...params);
+        await handler(...params);
     }
 
     return `
