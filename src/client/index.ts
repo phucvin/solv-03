@@ -3,11 +3,20 @@ import { Id, Signal, UpdateElement, CommandMap, Element } from './types';
 export default () => {
     const signalMap = new Map<Id, Signal>();
     let outgoingSetSignals = new Map<Id, any>();
+    const elementById = new Map<Id, HTMLElement>();
 
     function createElement(id: Id, tag: string) {
         const node = document.createElement(tag);
         node.id = id;
-        document.body.appendChild(node);
+        elementById[id] = node;
+    }
+
+    function getElementById(id: Id) : HTMLElement {
+        const node = document.getElementById(id);
+        if (node) {
+            return node;
+        }
+        return elementById[id]!;
     }
 
     function elementApplyUpdate(this: Element, update: UpdateElement) {
@@ -15,16 +24,15 @@ export default () => {
         switch (this.id) {
             case '$document': node = document; break;
             case '$body': node = document.body; break;
-            default: node = document.getElementById(this.id)!; break;
+            default: node = getElementById(this.id)!; break;
         }
         for (const [name, value] of Object.entries(update.setValues)) {
             node[name] = value;
-            node.setAttribute(name, value);
         }
         if (update.setChildren) {
             let childNodes: HTMLElement[] = [];
             for (const childId of update.setChildren) {
-                childNodes.push(document.getElementById(childId)!);
+                childNodes.push(getElementById(childId)!);
             }
             node.replaceChildren(...childNodes);
         }
