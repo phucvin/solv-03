@@ -23,11 +23,11 @@ let sharedHandlerCode : string | null = null;
 
 function getSharedHandlerCode() {
     if (sharedHandlerCode === null) {
-        sharedHandlerCode = 'solv.sharedHandlers = {\n';
+        sharedHandlerCode = 'const sharedHandlers = {\n';
         for (const staticId of Object.keys(sharedHandlers)) {
             sharedHandlerCode += `'${staticId}': ${sharedHandlers[staticId].toString()},`
         }
-        sharedHandlerCode += '}';
+        sharedHandlerCode += '};';
     }
     return sharedHandlerCode;
 }

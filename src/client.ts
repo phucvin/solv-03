@@ -1,4 +1,6 @@
-import { Id, UpdateElement, CommandMap, StaticId, HasId, Signal, Element, Solv } from './shared';
+import { Id, UpdateElement, CommandMap, StaticId, HasId, Element, Solv } from './shared';
+
+declare const sharedHandlers: { [staticId: StaticId]: any };
 
 export default () => {
     const signalCurrentValues: { [id: Id]: any } = {};
@@ -156,7 +158,7 @@ export default () => {
                         if (addEffect.params.indexOf(signalId) == -1) {
                             continue;
                         }
-                        let handler = this.sharedHandlers[addEffect.handler];
+                        let handler = sharedHandlers[addEffect.handler];
                         if (!handler) {
                             throw new Error(`unimplemented: maybe server handler: ${addEffect.handler}`);
                         }
@@ -176,13 +178,12 @@ export default () => {
         // console.log('dispatch', action);
         let params = [...action.params];
         params.push(solv);
-        this.sharedHandlers[action.handler](...params);
-        this.resolvePendingSignals();
+        sharedHandlers[action.handler](...params);
+        resolvePendingSignals();
     }
 
     return {
         applyCommandMap,
         dispatch,
-        resolvePendingSignals,
     };
 };
