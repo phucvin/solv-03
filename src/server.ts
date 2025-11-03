@@ -6,6 +6,7 @@ const clientCode = clientFunc.toString();
 let nextStaticNumber = -1;
 const serverHandlers : { [staticId: StaticId]: any } = {};
 const sharedHandlers : { [staticId: StaticId]: any } = {};
+const sharedComponentCode: { [name: string]: string } = {};
 
 export function registerServerHandler(handler: any) : StaticId {
     const staticId = numberToId(nextStaticNumber--);
@@ -19,17 +20,29 @@ export function registerSharedHandler(handler: any) : StaticId {
     return staticId;
 }
 
-let sharedHandlerCode : string | null = null;
+export function registerSharedComponent(name: string, code: string) {
+    sharedComponentCode[name] = code;
+}
 
-function getSharedHandlerCode() {
-    if (sharedHandlerCode === null) {
-        sharedHandlerCode = 'const sharedHandlers = {\n';
-        for (const staticId of Object.keys(sharedHandlers)) {
-            sharedHandlerCode += `'${staticId}': ${sharedHandlers[staticId].toString()},`
-        }
-        sharedHandlerCode += '};';
+let sharedComponentAndHandlerCode : string | null = null;
+
+function getSharedComponentAndHandlerCode() {
+    if (sharedComponentAndHandlerCode !== null) {
+        return sharedComponentAndHandlerCode;
     }
-    return sharedHandlerCode;
+
+    let s = '';
+    for (const [name, code] of Object.entries(sharedComponentCode)) {
+        s += `const ${name} = { default: ${code} };\n`
+    }
+    s += '\nconst sharedHandlers = {\n';
+    for (const [staticId, handler] of Object.entries(sharedHandlers)) {
+        s += `'${staticId}': ${handler.toString()},`
+    }
+    s += '};';
+
+    sharedComponentAndHandlerCode = s;
+    return sharedComponentAndHandlerCode;
 }
 
 function numberToId(x: number) {
@@ -67,7 +80,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         nextNumber: 1,
         createElements: undefined,
         updateElements: undefined,
-        deleteDelements: undefined,
+        deleteElements: undefined,
         setSignals: undefined,
         addEffects: undefined ,
         pendingSignals: undefined, 
@@ -120,31 +133,26 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 },
             }
         },
-        addEffect: (element: Element, handler: StaticId, params: any[]) => {
+        addEffect: (handler: StaticId, params: any[]) => {
             if (!cm.addEffects) {
-                cm.addEffects = {};
+                cm.addEffects = [];
             }
-            if (!cm.addEffects[element.id]) {
-                cm.addEffects[element.id] = [];
-            }
-            cm.addEffects[element.id].push({ handler, params });
+            cm.addEffects.push({ handler, params });
         }
     };
     await app(solv);
 
-    for (const elementId in cm.addEffects) {
-        for (const addEffect of cm.addEffects[elementId]) {
-            let handler = serverHandlers[addEffect.handler];
-            if (!handler) {
-                handler = sharedHandlers[addEffect.handler];
-            }
-            if (!handler) {
-                throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
-            }
-            let params : any = [...addEffect.params];
-            params.push(solv);
-            handler(...params);
+    for (const addEffect of cm.addEffects || []) {
+        let handler = serverHandlers[addEffect.handler];
+        if (!handler) {
+            handler = sharedHandlers[addEffect.handler];
         }
+        if (!handler) {
+            throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
+        }
+        let params : any = [...addEffect.params];
+        params.push(solv);
+        await handler(...params);
     }
 
     return `
@@ -158,7 +166,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         const solv = (${clientCode})();
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
 
-        ${getSharedHandlerCode()}
+        ${getSharedComponentAndHandlerCode()}
     </script>
 </html
 `;

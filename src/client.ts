@@ -1,20 +1,20 @@
-import { Id, UpdateElement, CommandMap, StaticId, HasId, Element, Solv, AddEffect } from './shared';
+import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
 
 declare const sharedHandlers: { [staticId: StaticId]: any };
 
 export default () => {
     const signalCurrentValues: { [id: Id]: any } = {};
-    const elementById = new Map<Id, WeakRef<HTMLElement>>();
+    const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
     const DOCUMENT = '$document';
     const BODY = '$body';
 
     function createElement(id: Id, tag: string) {
         const node = document.createElement(tag);
         node.id = id;
-        elementById[id] = new WeakRef(node);
+        tempElementMap.set(id, new WeakRef(node));
     }
 
-    function getElementById(id: Id): HTMLElement {
+    function findElementById(id: Id): HTMLElement {
         switch (id) {
             case DOCUMENT: return document;
             case BODY: return document.body;
@@ -24,11 +24,11 @@ export default () => {
         if (node) {
             return node;
         }
-        return elementById[id]!.deref();
+        return tempElementMap.get(id)!.deref();
     }
 
     function applyElementUpdate(id: Id, update: UpdateElement) {
-        let node = getElementById(id);
+        let node = findElementById(id);
         for (const [name, value] of Object.entries(update.sets || {})) {
             if (value === null) {
                 node[name] = undefined;
@@ -46,10 +46,21 @@ export default () => {
         }
         if (update.children) {
             let childNodes: HTMLElement[] = [];
+            const childrenToRemove: Set<HTMLElement> = new Set(node.children);
             for (const childId of update.children) {
-                childNodes.push(getElementById(childId)!);
+                const child = findElementById(childId)!;
+                childNodes.push(child);
+                childrenToRemove.delete(child);
             }
-            node.replaceChildren(...childNodes);
+            for (const childToRemove of childrenToRemove) {
+                childToRemove.remove();
+            }
+            childNodes.forEach((element, index) => {
+                const currentChild = node.children[index];
+                if (currentChild !== element) {
+                    node.insertBefore(element, currentChild || null);
+                }
+            });
         }
     }
 
@@ -63,29 +74,27 @@ export default () => {
         for (const [id, update] of Object.entries(cm.updateElements || {})) {
             applyElementUpdate(id, update);
         }
-        for (const id of cm.deleteDelements || []) {
+        for (const id of cm.deleteElements || []) {
             document.getElementById(id)?.remove();
         }
         for (const [id, value] of Object.entries(cm.setSignals || {})) {
             signalCurrentValues[id] = value;
         }
-        for (const elementId in cm.addEffects || []) {
-            for (const addEffect of cm.addEffects![elementId] || []) {
-                for (const paramId of addEffect.params) {
-                    if (!effectMap[paramId]) {
-                        effectMap[paramId] = [];
-                    }
-                    effectMap[paramId].push(addEffect);
+        for (const addEffect of cm.addEffects || []) {
+            for (const paramId of addEffect.params) {
+                if (!effectMap[paramId]) {
+                    effectMap[paramId] = [];
                 }
+                effectMap[paramId].push(addEffect);
             }
         }
-        elementById.clear();
+        tempElementMap.clear();
 
         lcm = {
             nextNumber: cm.nextNumber,
             createElements: undefined,
             updateElements: undefined,
-            deleteDelements: undefined,
+            deleteElements: undefined,
             setSignals: undefined,
             addEffects: undefined,
             pendingSignals: undefined,
@@ -122,11 +131,9 @@ export default () => {
                 throw new Error('Local Command Map is not ready');
             }
             const id = numberToId(lcm.nextNumber++);
-            if (!lcm.setSignals) {
-                lcm.setSignals = {};
-            }
-            lcm.setSignals[id] = initialValue;
-            return solv.getSignal(id);
+            const signal = solv.getSignal(id);
+            signal.set(initialValue);
+            return signal;
         },
         getElement: (id: Id) => {
             return {
@@ -145,6 +152,7 @@ export default () => {
                 get: () => signalCurrentValues[id],
                 set: (newValue: any) => {
                     // console.log(`signal(id:${id}).set`, newValue);
+
                     signalCurrentValues[id] = newValue;
 
                     if (!lcm.pendingSignals) {
@@ -158,17 +166,14 @@ export default () => {
                 },
             }
         },
-        addEffect: (element: Element, handler: StaticId, params: any[]) => {
-            if (!lcm.addEffects) {
-                lcm.addEffects = {};
-            }
-            if (!lcm.addEffects[element.id]) {
-                lcm.addEffects[element.id] = [];
-            }
+        addEffect: (handler: StaticId, params: any[]) => {
             const addEffect: AddEffect = { handler, params };
-            lcm.addEffects[element.id].push(addEffect);
+            if (!lcm.addEffects) {
+                lcm.addEffects = []
+            }
+            lcm.addEffects.push(addEffect);
 
-            for (const paramId in params) {
+            for (const paramId of params) {
                 if (!effectMap[paramId]) {
                     effectMap[paramId] = [];
                 }
@@ -177,7 +182,9 @@ export default () => {
         }
     };
 
-    function resolvePendingSignals() {
+    async function resolvePendingSignals() {
+        // console.log('resolvePendingSignals', lcm.pendingSignals, effectMap);
+
         let repeats = 5;
         while (Object.keys(lcm.pendingSignals || {}).length > 0 && --repeats > 0) {
             const pendingSignals = lcm.pendingSignals || {};
@@ -190,23 +197,23 @@ export default () => {
                     }
                     const params: any[] = [...effect.params];
                     params.push(solv);
-                    handler(...params);
+                    await handler(...params);
                 }
             }
         }
         if (repeats <= 0) {
             throw new Error('Too many repeats processing pending signals');
         }
-        elementById.clear();
+        tempElementMap.clear();
     }
 
-    function dispatch(action: { handler: StaticId, params: any[] }) {
+    async function dispatch(action: { handler: StaticId, params: any[] }) {
         // console.log('dispatch', action);
 
         let params = [...action.params];
         params.push(solv);
-        sharedHandlers[action.handler](...params);
-        resolvePendingSignals();
+        await sharedHandlers[action.handler](...params);
+        await resolvePendingSignals();
 
         //console.log('lcm', JSON.stringify(lcm));
     }

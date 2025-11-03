@@ -5,11 +5,13 @@ import { serve } from './server';
 
 import counter01 from './routes/counter01';
 import counter02 from './routes/counter02';
+import counter03 from './routes/counter03';
 
 const server = createServer(async (req, res) => {
 	const routes = new Map<string, (solv: Solv) => Promise<void>>([
 		['/counter01', counter01],
 		['/counter02', counter02],
+		['/counter03', counter03],
 	]);
 	if (!req.url || req.url === '/') {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
