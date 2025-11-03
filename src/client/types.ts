@@ -5,17 +5,24 @@ export type CreateElement = {
     tag: string,
 };
 
+export type AddEffect = {
+    handlerId: Id,
+    params: Id[],
+};
+
 export type CommandMap = {
+    nextNumber: number,
     createElements: CreateElement[],
     deleteDelements: Id[],
-    updateElements: { [key: Id] : UpdateElement },
-    setSignals: { [key: Id]: any },
+    updateElements: { [id: Id] : UpdateElement },
+    setSignals: { [id: Id]: any },
+    addEffects: { [elementId: Id]: AddEffect[] },
 };
 
 export type UpdateElement = {
     setValues: { [key: string]: any },
     removeValues: string[],
-    setChildren: Id[] | undefined,
+    setChildren: Id[] | null,
 };
 
 export type Element = {
