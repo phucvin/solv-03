@@ -5,7 +5,7 @@ const clientCode = clientFunc.toString();
 
 export type Element = {
     id: Id,
-    setValue: (name: string, value: any) => void,
+    set: (name: string, value: any) => void,
     setChildren: (children: (HasId | Id)[]) => void,
 };
 
@@ -50,9 +50,8 @@ function initUpdateElements(cm: CommandMap, element: Id | HasId) {
     }
     if (!cm.updateElements[id]) {
         cm.updateElements[id] = {
-            setValues: undefined,
-            removeValues: undefined,
-            setChildren: undefined,
+            sets: undefined,
+            children: undefined,
         };
     }
 }
@@ -86,16 +85,16 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         getElement: (id: Id) => {
             return {
                 id,
-                setValue: (name: string, value: any) => {
+                set: (name: string, value: any) => {
                     initUpdateElements(cm, id);
-                    if (!cm.updateElements![id].setValues) {
-                        cm.updateElements![id].setValues = {};
+                    if (!cm.updateElements![id].sets) {
+                        cm.updateElements![id].sets = {};
                     }
-                    cm.updateElements![id]!.setValues![name] = value;
+                    cm.updateElements![id]!.sets![name] = value;
                 },
                 setChildren: (children: (HasId | Id)[]) => {
                     initUpdateElements(cm, id); 
-                    cm.updateElements![id]!.setChildren = toIds(children);
+                    cm.updateElements![id]!.children = toIds(children);
                 },
             };
         },

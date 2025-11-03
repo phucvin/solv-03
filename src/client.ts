@@ -39,12 +39,12 @@ export default () => {
             case BODY: node = document.body; break;
             default: node = getElementById(this.id)!; break;
         }
-        for (const [name, value] of Object.entries(update.setValues || {})) {
+        for (const [name, value] of Object.entries(update.sets|| {})) {
             node[name] = value;
         }
-        if (update.setChildren) {
+        if (update.children) {
             let childNodes: HTMLElement[] = [];
-            for (const childId of update.setChildren) {
+            for (const childId of update.children) {
                 childNodes.push(getElementById(childId)!);
             }
             node.replaceChildren(...childNodes);

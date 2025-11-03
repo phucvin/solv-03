@@ -23,9 +23,8 @@ export type CommandMap = {
 };
 
 export type UpdateElement = {
-    setValues: { [key: string]: any } | undefined,
-    removeValues: string[] | undefined,
-    setChildren: Id[] | undefined,
+    sets: { [key: string]: any } | undefined,
+    children: Id[] | undefined,
 };
 
 export const DOCUMENT = '$document';
