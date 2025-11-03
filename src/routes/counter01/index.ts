@@ -1,9 +1,20 @@
-import { Solv } from "../../server";
-import { BODY, DOCUMENT } from "../../shared";
+import { Element, Solv } from "../../server";
+import { Id, BODY, DOCUMENT } from "../../shared";
+
+function Counter(solv: Solv) : Element {
+    const countTxt = solv.newElement('span');
+    countTxt.setValue('innerHTML', 1);
+
+    const incBtn = solv.newElement('button');
+    incBtn.setValue('innerHTML', 'inc');
+
+    const main = solv.newElement('div');
+    main.setChildren([countTxt.id, incBtn.id]);
+    return main;
+}
 
 export default async function (solv: Solv) {
-    const hello = solv.newElement('span');
-    hello.setValue('innerHTML', 'hello');
-    solv.getElement(BODY).setChildren([hello.id]);
     solv.getElement(DOCUMENT).setValue('title', 'hello');
+    const counter = Counter(solv);
+    solv.getElement(BODY).setChildren([counter.id]);
 }
