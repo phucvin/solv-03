@@ -30,7 +30,12 @@ export default () => {
     function applyElementUpdate(id: Id, update: UpdateElement) {
         let node = getElementById(id);
         for (const [name, value] of Object.entries(update.sets || {})) {
-            if (name.startsWith('on')) {
+            if (value === null) {
+                node[name] = undefined;
+                if ((node as any).removeAttribute) {
+                    node.removeAttribute(name);
+                }
+            } else  if (name.startsWith('on')) {
                 node.setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
             } else {
                 node[name] = value;
@@ -74,6 +79,7 @@ export default () => {
                 }
             }
         }
+        elementById.clear();
 
         lcm = {
             nextNumber: cm.nextNumber,
@@ -191,14 +197,18 @@ export default () => {
         if (repeats <= 0) {
             throw new Error('Too many repeats processing pending signals');
         }
+        elementById.clear();
     }
 
     function dispatch(action: { handler: StaticId, params: any[] }) {
         // console.log('dispatch', action);
+
         let params = [...action.params];
         params.push(solv);
         sharedHandlers[action.handler](...params);
         resolvePendingSignals();
+
+        //console.log('lcm', JSON.stringify(lcm));
     }
 
     return {
