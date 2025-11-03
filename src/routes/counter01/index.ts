@@ -1,8 +1,9 @@
-import { IncomingMessage, ServerResponse } from "node:http";
+import { Solv } from "../../server";
+import { BODY, DOCUMENT } from "../../shared";
 
-async function serve(req: IncomingMessage, res: ServerResponse) {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end('<h1>Counter01</h1>');
+export default async function (solv: Solv) {
+    const hello = solv.newElement('span');
+    hello.setValue('innerHTML', 'hello');
+    solv.getElement(BODY).setChildren([hello.id]);
+    solv.getElement(DOCUMENT).setValue('title', 'hello');
 }
-
-export default serve;

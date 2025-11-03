@@ -1,9 +1,10 @@
 import { IncomingMessage, ServerResponse, createServer } from 'node:http';
 
 import counter01 from './routes/counter01';
+import { Solv, render } from './server';
 
 const server = createServer(async (req, res) => {
-	const routes = new Map<string, (req: IncomingMessage, res: ServerResponse) => Promise<void>>([
+	const routes = new Map<string, (solv: Solv) => Promise<void>>([
 		['/counter01', counter01],
 	]);
 	if (!req.url || req.url === '/') {
@@ -14,7 +15,8 @@ const server = createServer(async (req, res) => {
 		}
 		res.end(index);
 	} else if (routes.has(req.url)) {
-		await (routes.get(req.url)!(req, res));
+		res.writeHead(200, { 'Content-Type': 'text/html' });
+		res.end(await render(counter01));
 	} else if (req.url === '/api/status') {
 		res.writeHead(200, { 'Content-Type': 'application/json' });
 		res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
