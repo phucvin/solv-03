@@ -11,7 +11,7 @@ export default () => {
     function createElement(id: Id, tag: string) {
         const node = document.createElement(tag);
         node.id = id;
-        elementById[id] = new WeakRef(node);
+        elementById.set(id, new WeakRef(node));
     }
 
     function getElementById(id: Id): HTMLElement {
@@ -24,7 +24,7 @@ export default () => {
         if (node) {
             return node;
         }
-        return elementById[id]!.deref();
+        return elementById.get(id)!.deref();
     }
 
     function applyElementUpdate(id: Id, update: UpdateElement) {
