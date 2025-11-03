@@ -17,6 +17,8 @@ const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv
     if (!counterMap.countToViewMap) {
         counterMap.countToViewMap = {};
     }
+    // Test timeout to see if focus on a txt is lost
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const view = await Counter({ count }, solv);
     counterMap.countToViewMap[count.id] = view.id;
     if (!counterMap.viewOrder) {
@@ -29,7 +31,7 @@ const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv
 
 export default async function ({ counterMap }: { counterMap: Signal }, solv: Solv): Promise<Element> {
     const main = solv.newElement('div');
-    main.set('innerHTML', 'flex flex-row space-x-4');
+    main.set('class', 'bg-white p-8 rounded-lg shadow-md flex flex-col items-center space-x-4 space-y-4');
 
     const newCount = solv.newSignal(0);
     const newCountTxt = solv.newElement('input');

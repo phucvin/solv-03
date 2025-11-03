@@ -50,7 +50,11 @@ async function Counter({ count }: { count: Signal }, solv: Solv): Promise<Elemen
     resetBtn.set('onclick', { handler: aReset, params: [count.id] });
     solv.addEffect(eReset, [count.id, resetBtn.id]);
 
-    main.setChildren([title, countTxt, incBtn, resetBtn]);
+    const tmpTxt = solv.newElement('input');
+    tmpTxt.set('type', 'text');
+    tmpTxt.set('class', 'bg-gray-50 border border-gray-300 text-center');
+
+    main.setChildren([title, countTxt, incBtn, resetBtn, tmpTxt]);
     return main;
 }
 
