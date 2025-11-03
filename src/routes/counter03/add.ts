@@ -17,14 +17,12 @@ const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv
     if (!counterMap.countToViewMap) {
         counterMap.countToViewMap = {};
     }
-    // Test timeout to see if focus on a txt is lost
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     const view = await Counter({ count }, solv);
     counterMap.countToViewMap[count.id] = view.id;
     if (!counterMap.viewOrder) {
         counterMap.viewOrder = [];
     }
-    counterMap.viewOrder.push(view.id);
+    counterMap.viewOrder.splice(0, 0, view.id);
 
     signal.set(counterMap);
 });
