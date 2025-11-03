@@ -7,6 +7,7 @@ export default () => {
     function createElement(id: Id, tag: string) {
         const node = document.createElement(tag);
         node.id = id;
+        document.body.appendChild(node);
     }
 
     function elementApplyUpdate(this: Element, update: UpdateElement) {
