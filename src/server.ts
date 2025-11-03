@@ -3,17 +3,23 @@ import clientFunc from './client';
 
 const clientCode = clientFunc.toString();
 
+export type HasId = {
+    id: Id,
+};
+
 export type Element = {
     id: Id,
     setValue: (name: string, value: any) => void,
     setChildren: (children: Id[] | null) => void,
 };
 
+export type Signal = HasId;
+
 export type Solv = {
     newElement: (tag: string) => Element,
-    newSignal: (initialValue: any) => Id,
+    newSignal: (initialValue: any) => Signal,
     getElement: (id: Id) => Element,
-    addEffect: (element: Id, handler: Id, ...params: Id[]) => void,
+    addEffect: (element: Element, handler: Id, ...params: HasId[]) => void,
 };
 
 function numberToId(x: number) {
@@ -44,7 +50,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 cm.setSignals = {};
             }
             cm.setSignals[id] = initialValue;
-            return id;
+            return { id };
         },
         getElement: (id: Id) => {
             return {
@@ -80,7 +86,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 },
             };
         },
-        addEffect: (element: Id, handler: Id, ...params: Id[]) => {
+        addEffect: (element: Id, handler: Id, ...params: HasId[]) => {
             if (!cm.addEffects) {
                 cm.addEffects = {};
             }
