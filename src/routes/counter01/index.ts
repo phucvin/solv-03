@@ -1,5 +1,5 @@
 import { Element, Solv, registerSharedHandler } from "../../server";
-import { BODY, DOCUMENT, INVOKE_HANDLER, Id } from "../../shared";
+import { BODY, DOCUMENT, Id } from "../../shared";
 
 const eTxt = registerSharedHandler((countId: Id, countTxtId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
@@ -17,11 +17,11 @@ function Counter(solv: Solv) : Element {
 
     const count = solv.newSignal(10);
     const countTxt = solv.newElement('span');
-    solv.addEffect(main, eTxt, [count, countTxt]);
+    solv.addEffect(main, eTxt, [count.id, countTxt.id]);
 
     const incBtn = solv.newElement('button');
     incBtn.set('innerHTML', 'inc');
-    incBtn.set('onclick', { '$': INVOKE_HANDLER, handler: aInc, params: [count.id] });
+    incBtn.set('onclick', { handler: aInc, params: [count.id] });
 
     main.setChildren([countTxt, incBtn]);
     return main;

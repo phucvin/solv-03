@@ -20,7 +20,7 @@ export type Solv = {
     newSignal: (initialValue: any) => Signal,
     getElement: (id: Id) => Element,
     getSignal: (id: Id) => Signal,
-    addEffect: (element: Element, handler: StaticId, params: (Id | HasId)[]) => void,
+    addEffect: (element: Element, handler: StaticId, params: any[]) => void,
 };
 
 let nextStaticNumber = -1;
@@ -47,27 +47,15 @@ function numberToId(x: number) {
     }
 }
 
-function toId(x: HasId | Id) {
-    if (typeof x === 'string') {
-        return x;
-    } else {
-        return x.id;
-    }
-}
-
 function toIds(xs: (HasId | Id)[]) {
-    if (!xs) {
-        return xs;
-    }
     const ids: Id[] = [];
     for (const x of xs) {
-        ids.push(toId(x));
+        ids.push(typeof x === 'string' ? x : x?.id);
     }
     return ids;
 }
 
-function initUpdateElements(cm: CommandMap, element: Id | HasId) {
-    const id = toId(element);
+function initUpdateElements(cm: CommandMap, id: Id) {
     if (!cm.updateElements) {
         cm.updateElements = {};
     }
@@ -139,14 +127,14 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                 },
             }
         },
-        addEffect: (element: Element, handler: StaticId, params: (Id | HasId)[]) => {
+        addEffect: (element: Element, handler: StaticId, params: any[]) => {
             if (!cm.addEffects) {
                 cm.addEffects = {};
             }
             if (!cm.addEffects[element.id]) {
                 cm.addEffects[element.id] = [];
             }
-            cm.addEffects[element.id].push({ handler: handler, params: toIds(params) });
+            cm.addEffects[element.id].push({ handler, params });
         }
     };
     await app(solv);

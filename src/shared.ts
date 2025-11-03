@@ -30,6 +30,5 @@ export type UpdateElement = {
 
 export const DOCUMENT = '$document';
 export const BODY = '$body';
-export const INVOKE_HANDLER = '!';
 
 export default {};
