@@ -7,13 +7,13 @@ const eTxt = registerSharedHandler((countId: Id, countTxtId: Id, solv: Solv) => 
     countTxt.set('innerHTML', `${count.get()}`);
 });
 
-const eReset = registerSharedHandler((countId: Id, resetBtnId: Id, solv: Solv) => {
+const eDelete = registerSharedHandler((countId: Id, deleteBtnId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
-    const resetBtn = solv.getElement(resetBtnId);
-    if (count.get() <= 0) {
-        resetBtn.set('disabled', 1);
+    const deleteBtn = solv.getElement(deleteBtnId);
+    if (count.get() >= 10) {
+        deleteBtn.set('disabled', 1);
     } else {
-        resetBtn.set('disabled', null);
+        deleteBtn.set('disabled', null);
     }
 });
 
@@ -22,12 +22,12 @@ const aInc = registerSharedHandler((countId: Id, solv: Solv) => {
     count.set(count.get() + 1);
 });
 
-const aReset = registerSharedHandler((countId: Id, solv: Solv) => {
-    const count = solv.getSignal(countId);
-    count.set(0);
+const aDelete = registerSharedHandler((countId: Id, deleteId: Id, solv: Solv) => {
+    const delete_ = solv.getSignal(deleteId);
+    delete_.set((delete_.get() || []).concat([countId]));
 });
 
-async function Counter({ count }: { count: Signal }, solv: Solv): Promise<Element> {
+async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, solv: Solv): Promise<Element> {
     const main = solv.newElement('div');
     main.set('class', 'bg-white p-8 rounded-lg shadow-md flex flex-col items-center space-x-4 space-y-4');
 
@@ -44,17 +44,17 @@ async function Counter({ count }: { count: Signal }, solv: Solv): Promise<Elemen
     incBtn.set('innerHTML', 'inc');
     incBtn.set('onclick', { handler: aInc, params: [count.id] });
 
-    const resetBtn = solv.newElement('button');
-    resetBtn.set('class', 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full text-2xl disabled:opacity-50 disabled:cursor-not-allowed');
-    resetBtn.set('innerHTML', 'reset');
-    resetBtn.set('onclick', { handler: aReset, params: [count.id] });
-    solv.addEffect(eReset, [count.id, resetBtn.id]);
+    const deleteBtn = solv.newElement('button');
+    deleteBtn.set('class', 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full text-2xl disabled:opacity-50 disabled:cursor-not-allowed');
+    deleteBtn.set('innerHTML', 'del');
+    deleteBtn.set('onclick', { handler: aDelete, params: [count.id, delete_.id] });
+    solv.addEffect(eDelete, [count.id, deleteBtn.id]);
 
     const tmpTxt = solv.newElement('input');
     tmpTxt.set('type', 'text');
     tmpTxt.set('class', 'bg-gray-50 border border-gray-300 text-center');
 
-    main.setChildren([title, countTxt, incBtn, resetBtn, tmpTxt]);
+    main.setChildren([title, countTxt, incBtn, deleteBtn, tmpTxt]);
     return main;
 }
 
@@ -62,8 +62,8 @@ registerSharedComponent(
     'import_counter',
     Counter.toString()
         .replaceAll('eTxt', `'${eTxt}'`)
-        .replaceAll('eReset', `'${eReset}'`)
+        .replaceAll('eDelete', `'${eDelete}'`)
         .replaceAll('aInc', `'${aInc}'`)
-        .replaceAll('aReset', `'${aReset}'`));
+        .replaceAll('aDelete', `'${aDelete}'`));
 
 export default Counter;
