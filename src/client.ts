@@ -1,20 +1,20 @@
-import { Id, UpdateElement, CommandMap, StaticId, HasId, Element, Solv, AddEffect } from './shared';
+import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
 
 declare const sharedHandlers: { [staticId: StaticId]: any };
 
 export default () => {
     const signalCurrentValues: { [id: Id]: any } = {};
-    const elementById = new Map<Id, WeakRef<HTMLElement>>();
+    const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
     const DOCUMENT = '$document';
     const BODY = '$body';
 
     function createElement(id: Id, tag: string) {
         const node = document.createElement(tag);
         node.id = id;
-        elementById.set(id, new WeakRef(node));
+        tempElementMap.set(id, new WeakRef(node));
     }
 
-    function getElementById(id: Id): HTMLElement {
+    function findElementById(id: Id): HTMLElement {
         switch (id) {
             case DOCUMENT: return document;
             case BODY: return document.body;
@@ -24,11 +24,11 @@ export default () => {
         if (node) {
             return node;
         }
-        return elementById.get(id)!.deref();
+        return tempElementMap.get(id)!.deref();
     }
 
     function applyElementUpdate(id: Id, update: UpdateElement) {
-        let node = getElementById(id);
+        let node = findElementById(id);
         for (const [name, value] of Object.entries(update.sets || {})) {
             if (value === null) {
                 node[name] = undefined;
@@ -47,7 +47,7 @@ export default () => {
         if (update.children) {
             let childNodes: HTMLElement[] = [];
             for (const childId of update.children) {
-                childNodes.push(getElementById(childId)!);
+                childNodes.push(findElementById(childId)!);
             }
             node.replaceChildren(...childNodes);
         }
@@ -77,7 +77,7 @@ export default () => {
                 effectMap[paramId].push(addEffect);
             }
         }
-        elementById.clear();
+        tempElementMap.clear();
 
         lcm = {
             nextNumber: cm.nextNumber,
@@ -192,7 +192,7 @@ export default () => {
         if (repeats <= 0) {
             throw new Error('Too many repeats processing pending signals');
         }
-        elementById.clear();
+        tempElementMap.clear();
     }
 
     function dispatch(action: { handler: StaticId, params: any[] }) {
