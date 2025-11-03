@@ -27,10 +27,12 @@ const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv
 
     signal.set(counterMap);
 
-    // Animation
-    requestAnimationFrame(() => {
-        document.getElementById(view.id).style.transform = null;
-    });
+    // Animation, client-side only
+    if (requestAnimationFrame) {
+        requestAnimationFrame(() => {
+            document.getElementById(view.id).style.transform = null;
+        });
+    }
 });
 
 export default async function ({ counterMap }: { counterMap: Signal }, solv: Solv): Promise<Element> {
