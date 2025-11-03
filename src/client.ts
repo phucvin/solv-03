@@ -79,6 +79,7 @@ export default () => {
                 }
             }
         }
+        elementById.clear();
 
         lcm = {
             nextNumber: cm.nextNumber,
@@ -196,6 +197,7 @@ export default () => {
         if (repeats <= 0) {
             throw new Error('Too many repeats processing pending signals');
         }
+        elementById.clear();
     }
 
     function dispatch(action: { handler: StaticId, params: any[] }) {
