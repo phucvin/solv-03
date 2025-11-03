@@ -9,6 +9,7 @@ Focusing on:
 TODOs:
 - Remove signals when parent element is deleted
 - Handle list
+- SSR
 - Server action & effect handler
 - Server caches signals & effects for each client but allow client to resend them if lost
 
