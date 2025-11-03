@@ -22,7 +22,7 @@ function numberToId(x: number) {
     return `_${x}`;
 }
 
-export async function render(app: (solv: Solv) => Promise<void>) {
+export async function serve(app: (solv: Solv) => Promise<void>) {
     const cm: CommandMap = {
         nextNumber: 1,
         createElements: [],
