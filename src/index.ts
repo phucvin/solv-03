@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { readFile } from 'node:fs';
 
 import { Solv } from './shared';
 import { serve } from './server';
@@ -23,6 +24,17 @@ const server = createServer(async (req, res) => {
 	} else if (routes.has(req.url)) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.end(await serve(routes.get(req.url)!));
+	} else if (req.url === '/client.mjs') {
+		readFile('./build/client.mjs', 'utf-8', (err, data) => {
+			if (err) {
+				console.log('Missing client.mjs file');
+				res.writeHead(500, { 'Content-Type': 'text/plain' });
+				res.end('Internal Error');
+			} else {
+				res.writeHead(200, { 'Content-Type': 'text/javascript' });
+				res.end(data);
+			}
+		});
 	} else if (req.url === '/api/status') {
 		res.writeHead(200, { 'Content-Type': 'application/json' });
 		res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));

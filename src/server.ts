@@ -37,7 +37,7 @@ function getSharedComponentAndHandlerCode() {
         // Another alias used by code compiled by workers
         s += `const ${name}_default = import_${name}.default;\n`;
     }
-    s += '\nconst sharedHandlers = {\n';
+    s += '\nglobalThis.sharedHandlers = {\n';
     for (const [staticId, handler] of Object.entries(sharedHandlers)) {
         s += `'${staticId}': ${handler.toString()},`
     }
@@ -163,9 +163,11 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <head>
     <body></body>
-    <script>
-        const __name = (a, b) => a;  // TODO: find way to get rid of this
-        const solv = (${clientCode})();
+    <script type="module">
+        import client from './client.mjs';
+        globalThis.solv = client();
+        console.log(window.solv);
+
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
 
         ${getSharedComponentAndHandlerCode()}
