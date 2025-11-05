@@ -4,7 +4,7 @@ import { serve } from './server';
 
 const app = express();
 
-app.use(express.static('.', { cacheControl: true, maxAge: '1h' }));
+app.use(express.static('bundle', { cacheControl: true, maxAge: '1h' }));
 
 app.get('/routes/*path', (req, res) => {
 	import(`.${req.url}/index.mjs`)
@@ -43,3 +43,6 @@ console.log('Starting solv-03');
 
 const port = 8080;
 app.listen(port);
+
+import { httpServerHandler } from "cloudflare:node";
+export default httpServerHandler({ port });
