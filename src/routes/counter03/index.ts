@@ -10,7 +10,7 @@ export type CounterMap = {
     delete_: Id,
 };
 
-const eDelete = registerSharedHandler((counterMapId: Id, deleteId: Id, solv: Solv) => {
+const eDelete = registerSharedHandler('al', (counterMapId: Id, deleteId: Id, solv: Solv) => {
     const delete_ = solv.getSignal(deleteId);
     if (delete_.get().length == 0) {
         return;

@@ -1,13 +1,13 @@
 import { registerSharedHandler } from "../../server";
 import { BODY, DOCUMENT, Id, Element, Solv } from "../../shared";
 
-const eTxt = registerSharedHandler((countId: Id, countTxtId: Id, solv: Solv) => {
+const eTxt = registerSharedHandler('ac', (countId: Id, countTxtId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
     const countTxt = solv.getElement(countTxtId);
     countTxt.set('innerHTML', `${count.get()}`);
 });
 
-const eReset = registerSharedHandler((countId: Id, resetBtnId: Id, solv: Solv) => {
+const eReset = registerSharedHandler('ad', (countId: Id, resetBtnId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
     const resetBtn = solv.getElement(resetBtnId);
     if (count.get() < 30) {
@@ -17,12 +17,12 @@ const eReset = registerSharedHandler((countId: Id, resetBtnId: Id, solv: Solv) =
     }
 });
 
-const aInc = registerSharedHandler((countId: Id, solv: Solv) => {
+const aInc = registerSharedHandler('ae', (countId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
     count.set(count.get() + 2);
 });
 
-const aReset = registerSharedHandler((countId: Id, solv: Solv) => {
+const aReset = registerSharedHandler('af', (countId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
     count.set(0);
 });

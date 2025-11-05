@@ -216,7 +216,11 @@ export default () => {
 
         let params = [...action.params];
         params.push(solv);
-        await sharedHandlers[action.handler](...params);
+        const handler = sharedHandlers[action.handler];
+        if (!handler) {
+            throw new Error(`Handler not found: ${action.handler}`);
+        }
+        await handler(...params);
         await resolvePendingSignals();
 
         //console.log('lcm', JSON.stringify(lcm));

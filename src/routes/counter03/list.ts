@@ -2,7 +2,7 @@ import { CounterMap } from ".";
 import { registerSharedHandler } from "../../server";
 import { Id, Element, Solv, Signal } from "../../shared";
 
-const eMain = registerSharedHandler((counterMapId: Id, mainId: Id, solv: Solv) => {
+const eMain = registerSharedHandler('am', (counterMapId: Id, mainId: Id, solv: Solv) => {
     const signal = solv.getSignal(counterMapId);
     const view = solv.getElement(mainId);
     const counterMap : CounterMap = signal.get();
