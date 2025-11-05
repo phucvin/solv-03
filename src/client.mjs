@@ -1,3 +1,0 @@
-// PLACEHOLDER
-
-export default {};

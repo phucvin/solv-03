@@ -8,8 +8,6 @@ import counter01 from './routes/counter01';
 import counter02 from './routes/counter02';
 import counter03 from './routes/counter03';
 
-import client_mjs from './client.mjs';
-
 const server = createServer(async (req, res) => {
 	const routes = new Map<string, (solv: Solv) => Promise<void>>([
 		['/counter01', counter01],
@@ -26,12 +24,6 @@ const server = createServer(async (req, res) => {
 	} else if (routes.has(req.url)) {
 		res.writeHead(200, { 'Content-Type': 'text/html' });
 		res.end(await serve(routes.get(req.url)!));
-	} else if (req.url === '/client.mjs') {	
-		res.writeHead(200, { 'Content-Type': 'text/javascript' });
-		res.end(client_mjs);
-	} else if (req.url === '/api/status') {
-		res.writeHead(200, { 'Content-Type': 'application/json' });
-		res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
 	} else if (req.url.endsWith('.mjs')) {
 		readFile(req.url.slice(1), 'utf-8', (err, data) => {
 			if (err) {
@@ -43,6 +35,9 @@ const server = createServer(async (req, res) => {
 				res.end(data);
 			}
 		})
+	} else if (req.url === '/api/status') {
+		res.writeHead(200, { 'Content-Type': 'application/json' });
+		res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
 	} else {
 		res.writeHead(404, { 'Content-Type': 'text/plain' });
 		res.end('Not Found');
