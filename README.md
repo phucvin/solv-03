@@ -7,10 +7,12 @@ Focusing on:
 - Offline-capable to allow DOM updates on both client and server
 
 TODOs:
+- Input field binding to signal
 - SSR
 - Server action & effect handler
 - Server caches signals & effects for each client but allow client to resend them if lost
 - Remove signals & effects when all related elements are deleted, a GC (scanning effect params) is easiest first
+- Do not store effect map keys for elements, just need keys for signals
 
 References:
 - https://github.com/phucvin/solv-01/

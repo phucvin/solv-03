@@ -16,6 +16,7 @@ export default () => {
 
     function findElementById(id: Id): HTMLElement {
         switch (id) {
+            // @ts-ignore
             case DOCUMENT: return document;
             case BODY: return document.body;
         }
@@ -24,13 +25,14 @@ export default () => {
         if (node) {
             return node;
         }
-        return tempElementMap.get(id)!.deref();
+        return tempElementMap.get(id)!.deref()!;
     }
 
     function applyElementUpdate(id: Id, update: UpdateElement) {
         let node = findElementById(id);
         for (const [name, value] of Object.entries(update.sets || {})) {
             if (value === null) {
+                // @ts-ignore
                 node[name] = undefined;
                 if ((node as any).removeAttribute) {
                     node.removeAttribute(name);
@@ -38,6 +40,7 @@ export default () => {
             } else  if (name.startsWith('on')) {
                 node.setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
             } else {
+                // @ts-ignore
                 node[name] = value;
                 if ((node as any).setAttribute) {
                     node.setAttribute(name, value);
@@ -46,6 +49,7 @@ export default () => {
         }
         if (update.children) {
             let childNodes: HTMLElement[] = [];
+            // @ts-ignore
             const childrenToRemove: Set<HTMLElement> = new Set(node.children);
             for (const childId of update.children) {
                 const child = findElementById(childId)!;
