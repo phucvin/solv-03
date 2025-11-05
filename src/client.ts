@@ -16,6 +16,7 @@ export default () => {
 
     function findElementById(id: Id): HTMLElement {
         switch (id) {
+            // @ts-ignore
             case DOCUMENT: return document;
             case BODY: return document.body;
         }
@@ -46,6 +47,7 @@ export default () => {
         }
         if (update.children) {
             let childNodes: HTMLElement[] = [];
+            // @ts-ignore
             const childrenToRemove: Set<HTMLElement> = new Set(node.children);
             for (const childId of update.children) {
                 const child = findElementById(childId)!;
