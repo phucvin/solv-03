@@ -34,7 +34,7 @@ const server = createServer(async (req, res) => {
 				res.writeHead(200, { 'Content-Type': 'text/javascript' });
 				res.end(data);
 			}
-		});
+		})
 	} else if (req.url === '/api/status') {
 		res.writeHead(200, { 'Content-Type': 'application/json' });
 		res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
@@ -48,3 +48,6 @@ console.log('Starting solv-03');
 
 const port = 8080;
 server.listen(port);
+
+import { httpServerHandler } from "cloudflare:node";
+export default httpServerHandler({ port });

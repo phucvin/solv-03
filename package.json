@@ -13,6 +13,10 @@
 	"scripts": {
 		"clean": "rm -rf build/",
 		"build": "tsc && mjscjs --target . --buildDir './build' --srcDir './src' --module esm",
-		"start": "npm run build && cd build/ && node index.mjs"
+		"cf-typegen": "wrangler types",
+		"check": "tsc && wrangler deploy --dry-run",
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev"
 	}
 }
