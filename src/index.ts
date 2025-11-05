@@ -4,7 +4,7 @@ import { serve } from './server';
 
 const app = express();
 
-app.use(express.static('bundle', { cacheControl: true, maxAge: "1h" }));
+app.use(express.static('bundle', { cacheControl: true, maxAge: '1h' }));
 
 app.get('/routes/*path', (req, res) => {
 	import(`.${req.url}/index.mjs`)

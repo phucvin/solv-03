@@ -3,7 +3,7 @@ import Counter from "./counter";
 import { registerSharedHandler } from "../../server";
 import { Id, Element, Solv, Signal } from "../../shared";
 
-const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv: Solv) => {
+const aAdd = registerSharedHandler('ag', async (counterMapId: Id, newCountId: Id, solv: Solv) => {
     const newCount: number = solv.getSignal(newCountId).get();
     if (newCount < 0) {
         console.error('internal error: invalid count', newCount);

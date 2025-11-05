@@ -1,18 +1,25 @@
 import { Id, HasId, StaticId, CommandMap, Solv } from "./shared";
 
-let nextStaticNumber = -1;
-const serverHandlers : { [staticId: StaticId]: any } = {};
-const sharedHandlers : { [staticId: StaticId]: any } = {};
-const sharedComponentCode: { [name: string]: string } = {};
+const seenStaticIds = new Set<StaticId>();
+let serverHandlers: { [staticId: StaticId]: any } = {};
+let sharedHandlers: { [staticId: StaticId]: any } = {};
+let sharedComponentCode: { [name: string]: string } = {};
 
-export function registerServerHandler(handler: any) : StaticId {
-    const staticId = numberToId(nextStaticNumber--);
+function addStaticId(staticId: StaticId) {
+    if (seenStaticIds.has(staticId)) {
+        throw new Error(`Duplicate Static ID: ${staticId}`);
+    }
+    seenStaticIds.add(staticId);
+}
+
+export function registerServerHandler(staticId: StaticId, handler: any): StaticId {
+    addStaticId(staticId);
     serverHandlers[staticId] = handler;
     return staticId;
 }
 
-export function registerSharedHandler(handler: any) : StaticId {
-    const staticId = numberToId(nextStaticNumber--);
+export function registerSharedHandler(staticId: StaticId, handler: any): StaticId {
+    addStaticId(staticId);
     sharedHandlers[staticId] = handler;
     return staticId;
 }
@@ -21,11 +28,11 @@ export function registerSharedComponent(name: string, code: string) {
     sharedComponentCode[name] = code;
 }
 
-let sharedComponentAndHandlerCode : string | null = null;
+let sharedComponentAndHandlerCodeCache = new Map<any, string>();
 
-function getSharedComponentAndHandlerCode() {
-    if (sharedComponentAndHandlerCode !== null) {
-        return sharedComponentAndHandlerCode;
+function getSharedComponentAndHandlerCode(key: any) {
+    if (sharedComponentAndHandlerCodeCache.has(key)) {
+        return sharedComponentAndHandlerCodeCache.get(key);
     }
 
     let s = '';
@@ -40,8 +47,8 @@ function getSharedComponentAndHandlerCode() {
     }
     s += '};';
 
-    sharedComponentAndHandlerCode = s;
-    return sharedComponentAndHandlerCode;
+    sharedComponentAndHandlerCodeCache.set(key, s);
+    return sharedComponentAndHandlerCodeCache.get(key);
 }
 
 function numberToId(x: number) {
@@ -73,7 +80,7 @@ function initUpdateElements(cm: CommandMap, id: Id) {
 }
 
 export async function serve(app: (solv: Solv) => Promise<void>) {
-    const signalCurrentValues : { [id: Id]: any } = {};
+    const signalCurrentValues: { [id: Id]: any } = {};
 
     const cm: CommandMap = {
         nextNumber: 1,
@@ -81,8 +88,8 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         updateElements: undefined,
         deleteElements: undefined,
         setSignals: undefined,
-        addEffects: undefined ,
-        pendingSignals: undefined, 
+        addEffects: undefined,
+        pendingSignals: undefined,
     };
 
     const solv: Solv = {
@@ -114,7 +121,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
                     cm.updateElements![id]!.sets![name] = value;
                 },
                 setChildren: (children: (HasId | Id)[]) => {
-                    initUpdateElements(cm, id); 
+                    initUpdateElements(cm, id);
                     cm.updateElements![id]!.children = toIds(children);
                 },
             };
@@ -149,12 +156,12 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         if (!handler) {
             throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
         }
-        let params : any = [...addEffect.params];
+        let params: any = [...addEffect.params];
         params.push(solv);
         await handler(...params);
     }
 
-    return `
+    const html = `
 <html>
     <head>
         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -166,9 +173,11 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
 
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
 
-        ${getSharedComponentAndHandlerCode()}
+        ${getSharedComponentAndHandlerCode(app)}
     </script>
-</html
-`;
+</html>
+    `;
+
+    return html;
 }
 
