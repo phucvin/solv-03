@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { readFile } from 'node:fs';
 
 import { Solv } from './shared';
 import { serve } from './server';
@@ -31,6 +32,17 @@ const server = createServer(async (req, res) => {
 	} else if (req.url === '/api/status') {
 		res.writeHead(200, { 'Content-Type': 'application/json' });
 		res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
+	} else if (req.url.endsWith('.mjs')) {
+		readFile(req.url.slice(1), 'utf-8', (err, data) => {
+			if (err) {
+				console.log('Error reading mjs file', err);
+				res.writeHead(404, { 'Content-Type': 'text/plain' });
+				res.end('Not Found');
+			} else {
+				res.writeHead(200, { 'Content-Type': 'text/javascript' });
+				res.end(data);
+			}
+		})
 	} else {
 		res.writeHead(404, { 'Content-Type': 'text/plain' });
 		res.end('Not Found');

@@ -1,23 +1,21 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "solv-03",
-	"main": "build/index.mjs",
 	"compatibility_date": "2025-10-08",
 	"compatibility_flags": ["nodejs_compat"],
+
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true,
+
 	"build": {
 	    "command": "npm run build"
 	},
+	"base_dir": "build",
+	"main": "build/index.mjs",
+
+	"find_additional_modules": true,
 	"rules": [
-		{
-			"type": "Text",
-			"globs": [
-				"**/client.mjs",
-			],
-			"fallthrough": true
-		},
+		{ "type": "ESModule", "globs": ["**/*.mjs"], "fallthrough": true },
 	]
 }
