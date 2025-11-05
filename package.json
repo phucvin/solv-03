@@ -13,7 +13,6 @@
 	"scripts": {
 		"clean": "rm -rf build/",
 		"build": "tsc && mjscjs --target . --buildDir './build' --srcDir './src' --module esm",
-		"start": "npx tsx src/index.ts",
-		"watch": "npx tsx watch src/index.ts"
+		"start": "npm run build && cd build/ && node index.mjs"
 	}
 }
