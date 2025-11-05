@@ -33,9 +33,10 @@ function getSharedComponentAndHandlerCode() {
 
     let s = '';
     for (const [name, code] of Object.entries(sharedComponentCode)) {
-        s += `const import_${name} = { default: ${code} };\n`;
-        // Another alias used by code compiled by workers
-        s += `const ${name}_default = import_${name}.default;\n`;
+        // Code with aliases so it work both locally an on workers 
+        s += `const ${name}_default = ${code};\n`;
+        s += `const import_${name} = { default: ${name}_default };\n`;
+        s += `const _${name}_mjs = { default: ${name}_default };\n`;
     }
     s += '\nglobalThis.sharedHandlers = {\n';
     for (const [staticId, handler] of Object.entries(sharedHandlers)) {
@@ -166,7 +167,6 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <script type="module">
         import client from './client.mjs';
         globalThis.solv = client();
-        console.log(window.solv);
 
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
 
