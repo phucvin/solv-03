@@ -10,5 +10,14 @@
 	"upload_source_maps": true,
 	"build": {
 	    "command": "npm run build"
-	}
+	},
+	"rules": [
+		{
+			"type": "Text",
+			"globs": [
+				"client.mjs",
+			],
+			"fallthrough": true
+		},
+	]
 }
