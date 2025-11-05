@@ -29,7 +29,7 @@ const aAdd = registerSharedHandler(async (counterMapId: Id, newCountId: Id, solv
     // Animation, client-side only
     if (requestAnimationFrame) {
         requestAnimationFrame(() => {
-            document.getElementById(view.id).style.transform = null;
+            document.getElementById(view.id)!.style.transform = '';
         });
     }
 });
