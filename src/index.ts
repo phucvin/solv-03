@@ -43,3 +43,6 @@ console.log('Starting solv-03');
 
 const port = 8080;
 app.listen(port);
+
+import { httpServerHandler } from "cloudflare:node";
+export default httpServerHandler({ port });
