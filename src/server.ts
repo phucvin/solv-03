@@ -1,7 +1,4 @@
-import { Id, HasId, StaticId, CommandMap, Solv, Element } from "./shared";
-import clientFunc from './client';
-
-const clientCode = clientFunc.toString();
+import { Id, HasId, StaticId, CommandMap, Solv } from "./shared";
 
 let nextStaticNumber = -1;
 const serverHandlers : { [staticId: StaticId]: any } = {};
@@ -37,7 +34,7 @@ function getSharedComponentAndHandlerCode() {
         s += `const ${name} = ${code};\n`;
         s += `const _${name.toLowerCase()}_mjs = { default: ${name} };\n`;
     }
-    s += '\nglobalThis.sharedHandlers = {\n';
+    s += '\nwindow.sharedHandlers = {\n';
     for (const [staticId, handler] of Object.entries(sharedHandlers)) {
         s += `'${staticId}': ${handler.toString()},`
     }
@@ -164,7 +161,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <head>
     <body></body>
     <script type="module">
-        import client from './client.mjs';
+        import client from '/client.mjs';
         globalThis.solv = client();
 
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
