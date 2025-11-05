@@ -34,9 +34,8 @@ function getSharedComponentAndHandlerCode() {
     let s = '';
     for (const [name, code] of Object.entries(sharedComponentCode)) {
         // Code with aliases so it work both locally an on workers 
-        s += `const ${name}_default = ${code};\n`;
-        s += `const import_${name} = { default: ${name}_default };\n`;
-        s += `const _${name}_mjs = { default: ${name}_default };\n`;
+        s += `const ${name} = ${code};\n`;
+        s += `const _${name.toLowerCase()}_mjs = { default: ${name} };\n`;
     }
     s += '\nglobalThis.sharedHandlers = {\n';
     for (const [staticId, handler] of Object.entries(sharedHandlers)) {
