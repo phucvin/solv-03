@@ -1,5 +1,4 @@
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs';
 
 import { Solv } from './shared';
 import { serve } from './server';
