@@ -15,7 +15,7 @@
 		{
 			"type": "Text",
 			"globs": [
-				"build/client.mjs",
+				"**/client.mjs",
 			],
 			"fallthrough": true
 		},
