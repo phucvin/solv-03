@@ -5,11 +5,13 @@ import { DOCUMENT, BODY } from './shared';
 declare const SOLV_CID: any;
 
 const signalCurrentValues: { [id: Id]: any } = {};
+// @ts-ignore
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
 
 function createElement(id: Id, tag: string) {
     const node = document.createElement(tag);
     node.id = id;
+// @ts-ignore
     tempElementMap.set(id, new WeakRef(node));
 }
 
