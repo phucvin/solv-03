@@ -1,14 +1,17 @@
 import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
 import { getSharedHandler } from './registry';
+import { DOCUMENT, BODY } from './shared';
+
+declare const SOLV_CID: any;
 
 const signalCurrentValues: { [id: Id]: any } = {};
+// @ts-ignore
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
-const DOCUMENT = '$document';
-const BODY = '$body';
 
 function createElement(id: Id, tag: string) {
     const node = document.createElement(tag);
     node.id = id;
+// @ts-ignore
     tempElementMap.set(id, new WeakRef(node));
 }
 
@@ -194,12 +197,13 @@ async function resolvePendingSignals() {
         for (const signalId in pendingSignals) {
             for (const effect of effectMap[signalId] || []) {
                 let handler = getSharedHandler(effect.handler);
-                if (!handler) {
-                    throw new Error(`unimplemented: maybe server handler: ${effect.handler}`);
+                if (handler) {
+                    const params: any[] = [...effect.params];
+                    params.push(solv);
+                    await handler(...params);
+                } else { // Server handler
+                    // TODO: Confirm it's an action, so it doesn't need execute
                 }
-                const params: any[] = [...effect.params];
-                params.push(solv);
-                await handler(...params);
             }
         }
     }
@@ -209,17 +213,53 @@ async function resolvePendingSignals() {
     tempElementMap.clear();
 }
 
+async function dispatchServer(action: { handler: StaticId, params: any[] }) {
+    const res = await fetch('/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cid: SOLV_CID, ...action }),
+    });
+    if (!res.ok) {
+        console.error('Dispatch response error', res.status);
+        return;
+    }
+
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let result = '';
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+            break;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        result += chunk;
+        const CHUNK_BEGIN = '|>';
+        const CHUNK_END = '<|';
+        let chunkEndIdx = result.indexOf(CHUNK_END);
+        while (chunkEndIdx >= 0) {
+            console.assert(result.startsWith(CHUNK_BEGIN));
+            const diff = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
+            console.log('diff:', JSON.stringify(diff, null, 2));
+            result = result.substring(chunkEndIdx + CHUNK_END.length);
+            // Find next chunk
+            chunkEndIdx = result.indexOf(CHUNK_END);
+        }
+    }
+}
+
 async function dispatch(action: { handler: StaticId, params: any[] }) {
     // console.log('dispatch', action);
 
     let params = [...action.params];
     params.push(solv);
     const handler = getSharedHandler(action.handler);
-    if (!handler) {
-        throw new Error(`Handler not found: ${action.handler}`);
+    if (handler) {
+        await handler(...params);
+        await resolvePendingSignals();
+    } else { // Server handler
+        await dispatchServer(action);
     }
-    await handler(...params);
-    await resolvePendingSignals();
 
     //console.log('lcm', JSON.stringify(lcm));
 }
