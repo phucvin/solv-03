@@ -154,10 +154,10 @@ function applyCommandMap(cm: CommandMap, signals: { [id: Id]: any }) {
     if (!cm.nextNumber) {
         throw new Error('Missing nextNumber in command map');
     }
-    cm = createCommandMap(cm.nextNumber);
     for (const [id, value] of Object.entries(cm.setSignals || {})) {
         signals[id] = value;
     }
+    cm = createCommandMap(cm.nextNumber);
     return cm;
 }
 
