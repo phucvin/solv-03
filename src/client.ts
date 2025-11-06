@@ -1,10 +1,9 @@
 import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
 import { getSharedHandler } from './registry';
+import { DOCUMENT, BODY } from './shared';
 
 const signalCurrentValues: { [id: Id]: any } = {};
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
-const DOCUMENT = '$document';
-const BODY = '$body';
 
 function createElement(id: Id, tag: string) {
     const node = document.createElement(tag);
