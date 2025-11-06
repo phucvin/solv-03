@@ -1,14 +1,14 @@
-import { registerSharedActionHandler, registerSharedEffectHandler, registerServerActionHandler } from "../../registry";
+import { registerActionHandler, registerEffectHandler, registerServerActionHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 
-export const eTxt = registerSharedEffectHandler('ac',
+export const eTxt = registerEffectHandler('ac',
     (countId: Id, countTxtId: Id, solv: Solv) => {
         const count = solv.getSignal(countId);
         const countTxt = solv.getElement(countTxtId);
         countTxt.set('innerHTML', `${count.get()}`);
     });
 
-export const eReset = registerSharedEffectHandler('ad',
+export const eReset = registerEffectHandler('ad',
     (countId: Id, resetBtnId: Id, solv: Solv) => {
         const count = solv.getSignal(countId);
         const resetBtn = solv.getElement(resetBtnId);
@@ -19,7 +19,7 @@ export const eReset = registerSharedEffectHandler('ad',
         }
     });
 
-export const aInc = registerSharedActionHandler('ae',
+export const aInc = registerActionHandler('ae',
     (countId: Id, solv: Solv) => {
         const count = solv.getSignal(countId);
         count.set(count.get() + 2);

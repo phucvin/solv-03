@@ -1,8 +1,8 @@
-import { registerSharedEffectHandler } from "../../registry";
+import { registerEffectHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 import { CounterMap } from ".";
 
-export const eDelete = registerSharedEffectHandler('al',
+export const eDelete = registerEffectHandler('al',
     (counterMapId: Id, deleteId: Id, solv: Solv) => {
         const delete_ = solv.getSignal(deleteId);
         if (delete_.get().length == 0) {

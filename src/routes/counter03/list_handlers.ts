@@ -1,8 +1,8 @@
-import { registerSharedEffectHandler } from "../../registry";
+import { registerEffectHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 import { CounterMap } from ".";
 
-export const eMain = registerSharedEffectHandler('am',
+export const eMain = registerEffectHandler('am',
     (counterMapId: Id, mainId: Id, solv: Solv) => {
         const signal = solv.getSignal(counterMapId);
         const view = solv.getElement(mainId);

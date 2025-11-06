@@ -1,9 +1,9 @@
-import { registerSharedActionHandler } from "../../registry";
+import { registerActionHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 import { CounterMap } from ".";
 import Counter from "./counter";
 
-export const aAdd = registerSharedActionHandler('ag',
+export const aAdd = registerActionHandler('ag',
     async (counterMapId: Id, newCountId: Id, solv: Solv) => {
         const newCount: number = solv.getSignal(newCountId).get();
         if (newCount < 0) {

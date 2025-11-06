@@ -1,8 +1,8 @@
-import { SERVER_ACTION_HANDLER_STATIC_ID_PREFIX, SERVER_EFFECT_HANDLER_STATIC_ID_PREFIX, SHARED_ACTION_HANDLER_STATIC_ID_PREFIX, SHARED_EFFECT_HANDLER_STATIC_ID_PREFIX, StaticId } from "./shared";
+import { SERVER_ACTION_HANDLER_STATIC_ID_PREFIX, SERVER_EFFECT_HANDLER_STATIC_ID_PREFIX, ACTION_HANDLER_STATIC_ID_PREFIX, EFFECT_HANDLER_STATIC_ID_PREFIX, StaticId } from "./shared";
 
 const seenStaticIds = new Set<StaticId>();
 let serverHandlers: { [staticId: StaticId]: any } = {};
-let sharedHandlers: { [staticId: StaticId]: any } = {};
+let handlers: { [staticId: StaticId]: any } = {};
 
 function addStaticId(staticId: StaticId) {
     if (seenStaticIds.has(staticId)) {
@@ -29,20 +29,20 @@ export function getServerHandler(staticId: StaticId) {
     return serverHandlers[staticId];
 }
 
-export function registerSharedActionHandler(staticId: StaticId, handler: any): StaticId {
-    staticId = `${SHARED_ACTION_HANDLER_STATIC_ID_PREFIX}${staticId}`;
+export function registerActionHandler(staticId: StaticId, handler: any): StaticId {
+    staticId = `${ACTION_HANDLER_STATIC_ID_PREFIX}${staticId}`;
     addStaticId(staticId);
-    sharedHandlers[staticId] = handler;
+    handlers[staticId] = handler;
     return staticId;
 }
 
-export function registerSharedEffectHandler(staticId: StaticId, handler: any): StaticId {
-    staticId = `${SHARED_EFFECT_HANDLER_STATIC_ID_PREFIX}${staticId}`;
+export function registerEffectHandler(staticId: StaticId, handler: any): StaticId {
+    staticId = `${EFFECT_HANDLER_STATIC_ID_PREFIX}${staticId}`;
     addStaticId(staticId);
-    sharedHandlers[staticId] = handler;
+    handlers[staticId] = handler;
     return staticId;
 }
 
-export function getSharedHandler(staticId: StaticId) {
-    return sharedHandlers[staticId];
+export function getHandler(staticId: StaticId) {
+    return handlers[staticId];
 }

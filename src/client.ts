@@ -1,5 +1,5 @@
 import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
-import { getSharedHandler } from './registry';
+import { getHandler } from './registry';
 import { DOCUMENT, BODY } from './shared';
 
 declare const SOLV_CID: any;
@@ -191,7 +191,7 @@ async function resolvePendingSignals() {
         lcm.pendingSignals = undefined;
         for (const signalId in pendingSignals) {
             for (const effect of effectMap[signalId] || []) {
-                let handler = getSharedHandler(effect.handler);
+                let handler = getHandler(effect.handler);
                 if (handler) {
                     const params: any[] = [...effect.params];
                     params.push(solv);
@@ -249,7 +249,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
 async function dispatch(action: { handler: StaticId, params: any[] }) {
     let params = [...action.params];
     params.push(solv);
-    const handler = getSharedHandler(action.handler);
+    const handler = getHandler(action.handler);
     if (handler) {
         await handler(...params);
     } else { // Server handler

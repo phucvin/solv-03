@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import { Id, HasId, StaticId, CommandMap, Solv, ELEMENT_ID_PREFIX, SIGNAL_ID_PREFIX } from "./shared";
-import { getServerHandler, getSharedHandler } from "./registry";
+import { getServerHandler, getHandler } from "./registry";
 import * as cache from "./cache01";
 
 function numberToId(prefix: string, x: number) {
@@ -94,7 +94,7 @@ async function runAddedEffects(cm: CommandMap, solv: Solv) {
     for (const addEffect of cm.addEffects || []) {
         let handler = getServerHandler(addEffect.handler);
         if (!handler) {
-            handler = getSharedHandler(addEffect.handler);
+            handler = getHandler(addEffect.handler);
         }
         if (!handler) {
             throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
