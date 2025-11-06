@@ -238,7 +238,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }, rese
     const body = JSON.stringify({
         cid: SOLV_CID,
         cm: lcm,
-        client: resend ? { signals, effects, nextNumber: lcm.nextNumber } : undefined,
+        client: resend ? { signals, effects } : undefined,
         ...action
     });
     console.log('dispatchServer', body);

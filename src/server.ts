@@ -150,6 +150,17 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     return html;
 }
 
+function applyCommandMap(cm: CommandMap, signals: { [id: Id]: any }) {
+    if (!cm.nextNumber) {
+        throw new Error('Missing nextNumber in command map');
+    }
+    cm = createCommandMap(cm.nextNumber);
+    for (const [id, value] of Object.entries(cm.setSignals || {})) {
+        signals[id] = value;
+    }
+    return cm;
+}
+
 export async function act(req: Request, res: Response) {
     const action = req.body;
     const cid = action.cid;
@@ -164,9 +175,9 @@ export async function act(req: Request, res: Response) {
             return;
         }
 
-        let { signals, effects, nextNumber } = action.client || {};
+        let { signals, effects } = action.client || {};
         // Get from cache if client didn't send current state
-        if (!(signals && effects && nextNumber)) {
+        if (!(signals && effects)) {
             let data: any;
             try {
                 data = await cache.get(cid);
@@ -175,8 +186,8 @@ export async function act(req: Request, res: Response) {
                 res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
                 return;
             }
-            ({ signals, effects, nextNumber } = data);
-            if (!signals || !effects || !nextNumber) {
+            ({ signals, effects } = data);
+            if (!signals || !effects) {
                 console.error('Missing signals/effects/nextNumber from cache');
                 res.writeHead(500, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ 'error': 'Internal error' }));
@@ -184,9 +195,17 @@ export async function act(req: Request, res: Response) {
             }
         }
 
-        const cm = createCommandMap(nextNumber);
-        const solv = createSolv(signals, cm);
+        let cm;
+        try {
+            cm = applyCommandMap(action.cm, signals);
+        } catch (err) {
+            console.error('Error procesing command map', err);
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 'error': 'Error processing command map' }));
+            return;
+        }
 
+        const solv = createSolv(signals, cm);
         const params = [...action.params];
         params.push(solv);
         await handler(...params);
