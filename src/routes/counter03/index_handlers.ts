@@ -23,3 +23,11 @@ export const eDelete = registerSharedHandler('al', (counterMapId: Id, deleteId: 
     }
     delete_.set([]);
 });
+
+// Need to import child handlers to include them at client
+// @ts-nocheck
+import "./counter_handlers.mjs";
+// @ts-nocheck
+import "./add_handlers.mjs";
+// @ts-nocheck
+import "./list_handlers.mjs";
