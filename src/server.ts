@@ -1,3 +1,5 @@
+import { Request, Response } from "express";
+
 import { Id, HasId, StaticId, CommandMap, Solv } from "./shared";
 import { getServerHandler, getSharedHandler } from "./registry";
 
@@ -129,3 +131,10 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     return html;
 }
 
+export function act(req: Request, res: Response) {
+    console.log('act', req.body);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.write(`|>${JSON.stringify(req.body)}<|`);
+    res.write(`|>${JSON.stringify(req.body)}<|`);
+    res.end();
+}

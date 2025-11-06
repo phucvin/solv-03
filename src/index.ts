@@ -1,10 +1,11 @@
 import express from 'express';
 
-import { serve } from './server';
+import { serve, act } from './server';
 
 const app = express();
 
 app.use(express.static('.', { cacheControl: true, maxAge: '1h' }));
+app.use(express.json());
 
 app.get('/routes/*path', (req, res) => {
 	import(`.${req.url}/index.mjs`)
@@ -20,10 +21,7 @@ app.get('/routes/*path', (req, res) => {
 		});
 });
 
-app.post('/api', (req, res) => {
-	res.writeHead(200, { 'Content-Type': 'application/json' });
-	res.end(JSON.stringify({ status: 'ok', timestamp: Date.now() }));
-});
+app.post('/action', act);
 
 app.get('/', (req, res) => {
 	res.end(`

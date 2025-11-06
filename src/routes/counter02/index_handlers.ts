@@ -1,4 +1,4 @@
-import { registerSharedHandler } from "../../registry";
+import { registerSharedHandler, registerServerHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 
 export const eTxt = registerSharedHandler('ac', (countId: Id, countTxtId: Id, solv: Solv) => {
@@ -22,7 +22,7 @@ export const aInc = registerSharedHandler('ae', (countId: Id, solv: Solv) => {
     count.set(count.get() + 2);
 });
 
-export const aReset = registerSharedHandler('af', (countId: Id, solv: Solv) => {
+export const aReset = registerServerHandler('af', (countId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
     count.set(0);
 });
