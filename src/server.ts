@@ -130,7 +130,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     await app(solv);
     await runAddedEffects(cm, solv);
 
-    const cid = cache.insert({
+    const cid = await cache.insert({
         signals,
         effects: cm.addEffects,
         nextNumber: cm.nextNumber,
@@ -168,7 +168,14 @@ export async function act(req: Request, res: Response) {
             return;
         }
 
-        const { signals, effects, nextNumber } = cache.get(cid);
+        let data: any;
+        try {
+            data = await cache.get(cid);
+        } catch (err) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
+        }
+        const { signals, effects, nextNumber } = data;
         if (!signals || !effects || !nextNumber) {
             console.error('Missing signals/effects/nextNumber from cache');
             res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -183,7 +190,7 @@ export async function act(req: Request, res: Response) {
         params.push(solv);
         await handler(...params);
 
-        cache.update(cid, {
+        await cache.update(cid, {
             signals,
             effects: effects.concat(cm.addEffects),
             nextNumber: cm.nextNumber,
