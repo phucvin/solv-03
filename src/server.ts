@@ -168,8 +168,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <head>
     <body></body>
     <script type="module">
-        import client from '/client.mjs';
-        globalThis.solv = client();
+        import '/client.mjs';
 
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
 
