@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { Id, HasId, StaticId, CommandMap, Solv } from "./shared";
+import { Id, HasId, StaticId, CommandMap, Solv, AddEffect } from "./shared";
 import { getServerHandler, getSharedHandler } from "./registry";
 import * as cache from "./cache01";
 
@@ -32,19 +32,7 @@ function initUpdateElements(cm: CommandMap, id: Id) {
     }
 }
 
-export async function serve(app: (solv: Solv) => Promise<void>) {
-    const signalCurrentValues: { [id: Id]: any } = {};
-
-    const cm: CommandMap = {
-        nextNumber: 1,
-        createElements: undefined,
-        updateElements: undefined,
-        deleteElements: undefined,
-        setSignals: undefined,
-        addEffects: undefined,
-        pendingSignals: undefined,
-    };
-
+function createSolv(signals: { [id: Id]: any }, cm: CommandMap) {
     const solv: Solv = {
         newElement: (tag: string) => {
             const id = numberToId(cm.nextNumber!++);
@@ -56,11 +44,11 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         },
         newSignal: (initialValue: any) => {
             const id = numberToId(cm.nextNumber!++);
+            signals[id] = initialValue;
             if (!cm.setSignals) {
                 cm.setSignals = {};
             }
             cm.setSignals[id] = initialValue;
-            signalCurrentValues[id] = initialValue;
             return solv.getSignal(id);
         },
         getElement: (id: Id) => {
@@ -82,9 +70,13 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         getSignal: (id: Id) => {
             return {
                 id,
-                get: () => signalCurrentValues[id],
+                get: () => signals[id],
                 set: (newValue: any) => {
-                    signalCurrentValues[id] = newValue;
+                    signals[id] = newValue;
+                    if (!cm.setSignals) {
+                        cm.setSignals = {};
+                    }
+                    cm.setSignals[id] = newValue;
                     if (!cm.pendingSignals) {
                         cm.pendingSignals = {};
                     }
@@ -99,8 +91,10 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
             cm.addEffects.push({ handler, params });
         }
     };
-    await app(solv);
+    return solv;
+}
 
+async function runAddedEffects(cm: CommandMap, solv: Solv) {
     for (const addEffect of cm.addEffects || []) {
         let handler = getServerHandler(addEffect.handler);
         if (!handler) {
@@ -113,8 +107,34 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         params.push(solv);
         await handler(...params);
     }
+}
 
-    const cid = cache.insert({ signals: signalCurrentValues, effects: cm.addEffects });
+function createCommandMap(nextNumber: number) {
+    const cm: CommandMap = {
+        nextNumber,
+        createElements: undefined,
+        updateElements: undefined,
+        deleteElements: undefined,
+        setSignals: undefined,
+        addEffects: undefined,
+        pendingSignals: undefined,
+    };
+    return cm;
+}
+
+export async function serve(app: (solv: Solv) => Promise<void>) {
+    const signals: { [id: Id]: any } = {};
+    const cm = createCommandMap(1);
+    const solv = createSolv(signals, cm);
+
+    await app(solv);
+    await runAddedEffects(cm, solv);
+
+    const cid = cache.insert({
+        signals,
+        effects: cm.addEffects,
+        nextNumber: cm.nextNumber,
+    });
 
     const html = `
 <html>
@@ -134,17 +154,55 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     return html;
 }
 
-export function act(req: Request, res: Response) {
-    console.log('act', req.body);
-    const cid = req.body.cid;
+export async function act(req: Request, res: Response) {
+    const action = req.body;
+    const cid = action.cid;
     if (cid === undefined) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ "error": "Missing CID" }));
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 'error': 'Missing CID' }));
     } else {
-        const { signals, effects } = cache.get(cid);
+        const handler = getServerHandler(action.handler);
+        if (!handler) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 'error': `Handler not found: ${action.handler}` }));
+            return;
+        }
+
+        const { signals, effects, nextNumber } = cache.get(cid);
+        if (!signals || !effects || !nextNumber) {
+            console.error('Missing signals/effects/nextNumber from cache');
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 'error': 'Internal error' }));
+            return;
+        }
+
+        const cm = createCommandMap(nextNumber);
+        const solv = createSolv(signals, cm);
+
+        const params = [...action.params];
+        params.push(solv);
+        await handler(...params);
+
+        cache.update(cid, {
+            signals,
+            effects: effects.concat(cm.addEffects),
+            nextNumber: cm.nextNumber,
+        });
+
+        /*
+        const effectMap: { [signalId: Id]: AddEffect[] } = {};
+        for (const effect of effects) {
+            for (const paramId of effect.params) {
+                if (!effectMap[paramId]) {
+                    effectMap[paramId] = [];
+                }
+                effectMap[paramId].push(effect);
+            }
+        }
+        */
+
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.write(`|>${JSON.stringify(signals)}<|`);
-        res.write(`|>${JSON.stringify(effects)}<|`);
+        res.write(`|>${JSON.stringify(cm)}<|`);
         res.end();
     }
 }
