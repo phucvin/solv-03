@@ -235,7 +235,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }, rese
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
     });
     if (res.status == 404 && resend == false) {
-        console.log('Server lost cache, resending client state', res.statusText);
+        console.log('Server lost cache, resending client state');
         return dispatchServer(action, resend = true);
     }
     if (!res.ok) {
