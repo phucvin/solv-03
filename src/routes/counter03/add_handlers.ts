@@ -9,6 +9,23 @@ export const aTxtChange = registerActionHandler('ap',
         solv.getSignal(newCountId).set(document.getElementById(newCountTxtId).value);
     });
 
+export const eNewCount = registerEffectHandler('aq',
+    (newCountId: Id, newCountTxtId: Id, addBtnId: Id, solv: Solv) => {
+        console.log(typeof window);
+        if (typeof window === 'undefined') return;
+
+        const newCount = solv.getSignal(newCountId).get();
+        solv.getElement(addBtnId).set('disabled',
+            !Number.isInteger(Number(newCount)) ? 1 : null);
+
+        const newCountTxt = document.getElementById(newCountTxtId);
+        // @ts-ignore
+        if (newCountTxt.value != newCount) {
+            // @ts-ignore
+            newCountTxt.value = newCount;
+        }
+    });
+
 export const aAdding = registerActionHandler('ao',
     async (newCountTxtId: Id, solv: Solv) => {
         solv.getElement(newCountTxtId).set('value', 'Adding...');
@@ -45,7 +62,8 @@ export const aAdd = registerServerActionHandler('ag',
 
         // Simulate long processing time, then reset text field from server-side
         await new Promise(resolve => setTimeout(resolve, 500));
-        solv.getElement(newCountTxtId).set('value', '');
+        solv.getElement(newCountTxtId).set('value', 'Added');
+        solv.getSignal(newCountId).set(0);
     });
 
 export const eAdd = registerEffectHandler('an',
