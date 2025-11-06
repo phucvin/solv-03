@@ -1,5 +1,4 @@
 import { Element, Solv, Signal } from "../../shared";
-import { registerSharedComponent } from "../../registry";
 import { eTxt, eDelete, aInc, aDelete } from "./counter_handlers";
 
 async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, solv: Solv): Promise<Element> {
@@ -32,14 +31,5 @@ async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, s
     main.setChildren([title, countTxt, incBtn, deleteBtn, tmpTxt]);
     return main;
 }
-
-registerSharedComponent(
-    'Counter',
-    Counter.toString()
-        // Need to use regex due to variable renaming when compiling for wokers
-        .replaceAll(/eTxt.*?,/g, `'${eTxt}',`)
-        .replaceAll(/eDelete.*?,/g, `'${eDelete}',`)
-        .replaceAll(/aInc.*?,/g, `'${aInc}',`)
-        .replaceAll(/aDelete.*?,/g, `'${aDelete}',`));
 
 export default Counter;

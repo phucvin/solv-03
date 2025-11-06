@@ -1,6 +1,5 @@
 import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
-
-declare const sharedHandlers: { [staticId: StaticId]: any };
+import { getSharedHandler } from './registry';
 
 const signalCurrentValues: { [id: Id]: any } = {};
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
@@ -194,7 +193,7 @@ async function resolvePendingSignals() {
         lcm.pendingSignals = undefined;
         for (const signalId in pendingSignals) {
             for (const effect of effectMap[signalId] || []) {
-                let handler = sharedHandlers[effect.handler];
+                let handler = getSharedHandler(effect.handler);
                 if (!handler) {
                     throw new Error(`unimplemented: maybe server handler: ${effect.handler}`);
                 }
@@ -215,7 +214,7 @@ async function dispatch(action: { handler: StaticId, params: any[] }) {
 
     let params = [...action.params];
     params.push(solv);
-    const handler = sharedHandlers[action.handler];
+    const handler = getSharedHandler(action.handler);
     if (!handler) {
         throw new Error(`Handler not found: ${action.handler}`);
     }

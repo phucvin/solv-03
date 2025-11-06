@@ -1,5 +1,5 @@
 import { Id, HasId, StaticId, CommandMap, Solv } from "./shared";
-import { getServerHandler, getSharedHandler, getSharedComponentAndHandlerCode } from "./registry";
+import { getServerHandler, getSharedHandler } from "./registry";
 
 function numberToId(x: number) {
     if (x < 0) {
@@ -119,10 +119,9 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <body></body>
     <script type="module">
         import '/client.mjs';
+        import '/routes/counter01/index_handlers.mjs';
 
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
-
-        ${getSharedComponentAndHandlerCode(app)}
     </script>
 </html>
     `;

@@ -1,4 +1,4 @@
-import { registerSharedComponent, registerSharedHandler } from "../../registry";
+import { registerSharedHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 
 export const eTxt = registerSharedHandler('ah', (countId: Id, countTxtId: Id, solv: Solv) => {
