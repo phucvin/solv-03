@@ -2,6 +2,12 @@ import express from 'express';
 
 import { serve, act } from './server';
 
+// Load all handlers that might be needed by this server,
+// so they can be found when processing '/action'.
+import './routes/counter01/index_handlers.mjs';
+import './routes/counter02/index_handlers.mjs';
+import './routes/counter03/index_handlers.mjs';
+
 const app = express();
 
 app.use(express.static('.', { cacheControl: true, maxAge: '1h' }));
