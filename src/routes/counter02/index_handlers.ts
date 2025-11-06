@@ -22,6 +22,7 @@ export const aInc = registerSharedHandler('ae', (countId: Id, solv: Solv) => {
     count.set(count.get() + 2);
 });
 
+// Only server can reset a counter
 export const aReset = registerServerHandler('af', (countId: Id, solv: Solv) => {
     const count = solv.getSignal(countId);
     count.set(0);

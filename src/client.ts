@@ -2,6 +2,8 @@ import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from 
 import { getSharedHandler } from './registry';
 import { DOCUMENT, BODY } from './shared';
 
+declare const SOLV_CID: any;
+
 const signalCurrentValues: { [id: Id]: any } = {};
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
 
@@ -213,32 +215,33 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
     const res = await fetch('/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(action),
+        body: JSON.stringify({ cid: SOLV_CID, ...action }),
     });
     if (!res.ok) {
         console.error('Dispatch response error', res.status);
-    } else {
-        const reader = res.body!.getReader();
-        const decoder = new TextDecoder('utf-8');
-        let result = '';
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                break;
-            }
-            const chunk = decoder.decode(value, { stream: true });
-            result += chunk;
-            const CHUNK_BEGIN = '|>';
-            const CHUNK_END = '<|';
-            let chunkEndIdx = result.indexOf(CHUNK_END);
-            while (chunkEndIdx >= 0) {
-                console.assert(result.startsWith(CHUNK_BEGIN));
-                const diff = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
-                console.log('diff:', JSON.stringify(diff, null, 2));
-                result = result.substring(chunkEndIdx + CHUNK_END.length);
-                // Find next chunk
-                chunkEndIdx = result.indexOf(CHUNK_END);
-            }
+        return;
+    }
+
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let result = '';
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+            break;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        result += chunk;
+        const CHUNK_BEGIN = '|>';
+        const CHUNK_END = '<|';
+        let chunkEndIdx = result.indexOf(CHUNK_END);
+        while (chunkEndIdx >= 0) {
+            console.assert(result.startsWith(CHUNK_BEGIN));
+            const diff = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
+            console.log('diff:', JSON.stringify(diff, null, 2));
+            result = result.substring(chunkEndIdx + CHUNK_END.length);
+            // Find next chunk
+            chunkEndIdx = result.indexOf(CHUNK_END);
         }
     }
 }

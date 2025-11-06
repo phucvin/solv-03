@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import { Id, HasId, StaticId, CommandMap, Solv } from "./shared";
 import { getServerHandler, getSharedHandler } from "./registry";
+import * as cache from "./cache01";
 
 function numberToId(x: number) {
     if (x < 0) {
@@ -113,6 +114,8 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         await handler(...params);
     }
 
+    const cid = cache.insert({ signals: signalCurrentValues, effects: cm.addEffects });
+
     const html = `
 <html>
     <head>
@@ -122,7 +125,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <script type="module">
         import '/client.mjs';
         import './index_handlers.mjs';
-
+        globalThis.SOLV_CID = ${cid};
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
     </script>
 </html>
@@ -133,8 +136,15 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
 
 export function act(req: Request, res: Response) {
     console.log('act', req.body);
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.write(`|>${JSON.stringify(req.body)}<|`);
-    res.write(`|>${JSON.stringify(req.body)}<|`);
-    res.end();
+    const cid = req.body.cid;
+    if (cid === undefined) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ "error": "Missing CID" }));
+    } else {
+        const { signals, effects } = cache.get(cid);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.write(`|>${JSON.stringify(signals)}<|`);
+        res.write(`|>${JSON.stringify(effects)}<|`);
+        res.end();
+    }
 }
