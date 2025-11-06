@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 
 import { Id, HasId, StaticId, CommandMap, Solv, AddEffect } from "./shared";
 import { getServerHandler, getSharedHandler } from "./registry";
-import * as cache from "./cache01";
+import * as cache from "./cache02";
 
 function numberToId(x: number) {
     if (x < 0) {
@@ -145,7 +145,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <script type="module">
         import '/client.mjs';
         import './index_handlers.mjs';
-        globalThis.SOLV_CID = ${cid};
+        globalThis.SOLV_CID = '${cid}';
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
     </script>
 </html>
@@ -174,6 +174,7 @@ export async function act(req: Request, res: Response) {
         } catch (err) {
             res.writeHead(404, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
+            return;
         }
         const { signals, effects, nextNumber } = data;
         if (!signals || !effects || !nextNumber) {
