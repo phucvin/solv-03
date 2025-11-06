@@ -174,6 +174,7 @@ export async function act(req: Request, res: Response) {
         } catch (err) {
             res.writeHead(404, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
+            return;
         }
         const { signals, effects, nextNumber } = data;
         if (!signals || !effects || !nextNumber) {
