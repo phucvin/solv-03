@@ -119,7 +119,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <body></body>
     <script type="module">
         import '/client.mjs';
-        import '/routes/counter01/index_handlers.mjs';
+        import './index_handlers.mjs';
 
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
     </script>
