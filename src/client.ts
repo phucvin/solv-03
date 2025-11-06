@@ -238,7 +238,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }, rese
     const body = JSON.stringify({
         cid: SOLV_CID,
         cm: lcm,
-        client: resend ? { signals, effects, nextNumber: lcm.nextNumber } : undefined,
+        client: resend ? { signals, effects } : undefined,
         ...action
     });
     console.log('dispatchServer', body);
@@ -281,7 +281,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }, rese
     }
 }
 
-async function dispatch(action: { handler: StaticId, params: any[] }) {
+async function dispatchRaw(action: { handler: StaticId, params: any[] }) {
     let params = [...action.params];
     params.push(solv);
     const handler = getHandler(action.handler);
@@ -291,6 +291,14 @@ async function dispatch(action: { handler: StaticId, params: any[] }) {
         await dispatchServer(action);
     }
     await resolvePendingSignals();
+}
+
+let lastDispatch = Promise.resolve();
+
+async function dispatch(action: { handler: StaticId, params: any[] }) {
+    // Queue dispatch to avoid dispatching while processing previous response stream
+    await lastDispatch;
+    lastDispatch = dispatchRaw(action);
 }
 
 // @ts-ignore
