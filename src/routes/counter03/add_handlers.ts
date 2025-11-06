@@ -1,11 +1,16 @@
-import { registerEffectHandler, registerServerActionHandler } from "../../registry";
+import { registerActionHandler, registerEffectHandler, registerServerActionHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 import { CounterMap } from ".";
 import Counter from "./counter";
 
+export const aAdding = registerActionHandler('ao',
+    async (newCountTxtId: Id, solv: Solv) => {
+        solv.getElement(newCountTxtId).set('value', 'Adding...');
+    });
+
 // Only server can add counter
 export const aAdd = registerServerActionHandler('ag',
-    async (counterMapId: Id, newCountId: Id, solv: Solv) => {
+    async (counterMapId: Id, newCountId: Id, newCountTxtId: Id, solv: Solv) => {
         const newCount: number = solv.getSignal(newCountId).get();
         if (newCount < 0) {
             console.error('internal error: invalid count', newCount);
@@ -31,6 +36,10 @@ export const aAdd = registerServerActionHandler('ag',
         signal.set(counterMap);
 
         solv.addEffect(eAdd, [view.id]);
+
+        // Simulate long processing time, then reset text field from server-side
+        await new Promise(resolve => setTimeout(resolve, 500));
+        solv.getElement(newCountTxtId).set('value', '');
     });
 
 export const eAdd = registerEffectHandler('an',

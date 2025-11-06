@@ -1,5 +1,5 @@
 import { Element, Solv, Signal } from "../../shared";
-import { aAdd } from "./add_handlers";
+import { aAdding, aAdd } from "./add_handlers";
 
 export default async function ({ counterMap }: { counterMap: Signal }, solv: Solv): Promise<Element> {
     const main = solv.newElement('div');
@@ -13,7 +13,10 @@ export default async function ({ counterMap }: { counterMap: Signal }, solv: Sol
     const addBtn = solv.newElement('button');
     addBtn.set('innerHTML', 'Add');
     addBtn.set('class', 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full text-2xl');
-    addBtn.set('onclick', { handler: aAdd, params: [counterMap.id, newCount.id] });
+    addBtn.set('onclick', [
+        { handler: aAdding, params: [newCountTxt.id] },
+        { handler: aAdd, params: [counterMap.id, newCount.id, newCountTxt.id] },
+    ]);
 
     main.setChildren([newCountTxt, addBtn]);
     return main;
