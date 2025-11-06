@@ -209,10 +209,10 @@ async function resolvePendingSignals() {
 }
 
 async function dispatchServer(action: { handler: StaticId, params: any[] }) {
+    const body = JSON.stringify({ cid: SOLV_CID, ...action, cm: lcm });
+    console.log('dispatchServer', body);
     const res = await fetch('/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cid: SOLV_CID, ...action, cm: lcm }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
     });
     if (!res.ok) {
         console.error('Dispatch response error', res.status);
@@ -236,7 +236,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
             console.assert(result.startsWith(CHUNK_BEGIN));
 
             const cm = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
-            console.log('cm:', JSON.stringify(cm, null, 2));
+            console.log('cm', JSON.stringify(cm));
             applyCommandMap(cm);
             
             result = result.substring(chunkEndIdx + CHUNK_END.length);
