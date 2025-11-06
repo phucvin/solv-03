@@ -1,15 +1,11 @@
 import { Request, Response } from "express";
 
-import { Id, HasId, StaticId, CommandMap, Solv, AddEffect } from "./shared";
-import { getServerHandler, getSharedHandler } from "./registry";
+import { Id, HasId, StaticId, CommandMap, Solv, ELEMENT_ID_PREFIX, SIGNAL_ID_PREFIX } from "./shared";
+import { getServerHandler, getHandler } from "./registry";
 import * as cache from "./cache02";
 
-function numberToId(x: number) {
-    if (x < 0) {
-        return `@${-x}`;
-    } else {
-        return `_${x}`;
-    }
+function numberToId(prefix: string, x: number) {
+    return `${prefix}${x}`;
 }
 
 function toIds(xs: (HasId | Id)[]) {
@@ -35,7 +31,7 @@ function initUpdateElements(cm: CommandMap, id: Id) {
 function createSolv(signals: { [id: Id]: any }, cm: CommandMap) {
     const solv: Solv = {
         newElement: (tag: string) => {
-            const id = numberToId(cm.nextNumber!++);
+            const id = numberToId(ELEMENT_ID_PREFIX, cm.nextNumber!++);
             if (!cm.createElements) {
                 cm.createElements = [];
             }
@@ -43,7 +39,7 @@ function createSolv(signals: { [id: Id]: any }, cm: CommandMap) {
             return solv.getElement(id);
         },
         newSignal: (initialValue: any) => {
-            const id = numberToId(cm.nextNumber!++);
+            const id = numberToId(SIGNAL_ID_PREFIX, cm.nextNumber!++);
             signals[id] = initialValue;
             if (!cm.setSignals) {
                 cm.setSignals = {};
@@ -98,7 +94,7 @@ async function runAddedEffects(cm: CommandMap, solv: Solv) {
     for (const addEffect of cm.addEffects || []) {
         let handler = getServerHandler(addEffect.handler);
         if (!handler) {
-            handler = getSharedHandler(addEffect.handler);
+            handler = getHandler(addEffect.handler);
         }
         if (!handler) {
             throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
@@ -168,20 +164,24 @@ export async function act(req: Request, res: Response) {
             return;
         }
 
-        let data: any;
-        try {
-            data = await cache.get(cid);
-        } catch (err) {
-            res.writeHead(404, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
-            return;
-        }
-        const { signals, effects, nextNumber } = data;
-        if (!signals || !effects || !nextNumber) {
-            console.error('Missing signals/effects/nextNumber from cache');
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ 'error': 'Internal error' }));
-            return;
+        let { signals, effects, nextNumber } = action.client || {};
+        // Get from cache if client didn't send current state
+        if (!(signals && effects && nextNumber)) {
+            let data: any;
+            try {
+                data = await cache.get(cid);
+            } catch (err) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
+                return;
+            }
+            ({ signals, effects, nextNumber } = data);
+            if (!signals || !effects || !nextNumber) {
+                console.error('Missing signals/effects/nextNumber from cache');
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 'error': 'Internal error' }));
+                return;
+            }
         }
 
         const cm = createCommandMap(nextNumber);

@@ -1,17 +1,26 @@
 import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
-import { getSharedHandler } from './registry';
+import { getHandler, isSignal } from './registry';
 import { DOCUMENT, BODY } from './shared';
 
 declare const SOLV_CID: any;
 
+// Client's all signals and effects
 const signals: { [id: Id]: any } = {};
+const effects: AddEffect[] = [];
+// Similar to effects, but as a dictionary for faster lookup based on signalId
+const effectMap: { [signalId: Id]: AddEffect[] } = {};
+
+// Local command map, semi-reset after sending to server
+let lcm: CommandMap;
+
+// Temporary holder for created but not yet attached elements
 // @ts-ignore
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
 
 function createElement(id: Id, tag: string) {
     const node = document.createElement(tag);
     node.id = id;
-// @ts-ignore
+    // @ts-ignore
     tempElementMap.set(id, new WeakRef(node));
 }
 
@@ -69,9 +78,6 @@ function applyElementUpdate(id: Id, update: UpdateElement) {
     }
 }
 
-let lcm: CommandMap;
-const effectMap: { [signalId: Id]: AddEffect[] } = {};
-
 function applyCommandMap(cm: CommandMap) {
     for (const ce of cm.createElements || []) {
         createElement(ce.id, ce.tag);
@@ -85,12 +91,17 @@ function applyCommandMap(cm: CommandMap) {
     for (const [id, value] of Object.entries(cm.setSignals || {})) {
         signals[id] = value;
     }
-    for (const addEffect of cm.addEffects || []) {
-        for (const paramId of addEffect.params) {
-            if (!effectMap[paramId]) {
-                effectMap[paramId] = [];
+    if (cm.addEffects) {
+        effects.push(...cm.addEffects);
+        for (const addEffect of cm.addEffects || []) {
+            for (const paramId of addEffect.params) {
+                if (isSignal(paramId)) {
+                    if (!effectMap[paramId]) {
+                        effectMap[paramId] = [];
+                    }
+                    effectMap[paramId].push(addEffect);
+                }
             }
-            effectMap[paramId].push(addEffect);
         }
     }
     tempElementMap.clear();
@@ -175,11 +186,14 @@ const solv: Solv = {
         }
         lcm.addEffects.push(addEffect);
 
+        effects.push(addEffect);
         for (const paramId of params) {
-            if (!effectMap[paramId]) {
-                effectMap[paramId] = [];
+            if (isSignal(paramId)) {
+                if (!effectMap[paramId]) {
+                    effectMap[paramId] = [];
+                }
+                effectMap[paramId].push(addEffect);
             }
-            effectMap[paramId].push(addEffect);
         }
     }
 };
@@ -191,13 +205,14 @@ async function resolvePendingSignals() {
         lcm.pendingSignals = undefined;
         for (const signalId in pendingSignals) {
             for (const effect of effectMap[signalId] || []) {
-                let handler = getSharedHandler(effect.handler);
+                let handler = getHandler(effect.handler);
                 if (handler) {
                     const params: any[] = [...effect.params];
                     params.push(solv);
                     await handler(...params);
-                } else { // Server handler
-                    // TODO: Confirm it's an action, so it doesn't need execute
+                } else { // Server effect handler
+                    throw new Error(
+                        `Unimplemented executing server effect handler: ${effect.handler}`);
                 }
             }
         }
@@ -208,14 +223,23 @@ async function resolvePendingSignals() {
     tempElementMap.clear();
 }
 
-async function dispatchServer(action: { handler: StaticId, params: any[] }) {
-    const body = JSON.stringify({ cid: SOLV_CID, ...action, cm: lcm });
+async function dispatchServer(action: { handler: StaticId, params: any[] }, resend = false) {
+    const body = JSON.stringify({
+        cid: SOLV_CID,
+        cm: lcm,
+        client: resend ? { signals, effects, nextNumber: lcm.nextNumber } : undefined,
+        ...action
+    });
     console.log('dispatchServer', body);
     const res = await fetch('/action', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
     });
+    if (res.status == 404 && resend == false) {
+        console.log('Server lost cache, resending client state');
+        return dispatchServer(action, resend = true);
+    }
     if (!res.ok) {
-        console.error('Dispatch response error', res.status);
+        console.error('Dispatch response error', res.statusText);
         return;
     }
 
@@ -238,7 +262,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
             const cm = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
             console.log('cm', JSON.stringify(cm));
             applyCommandMap(cm);
-            
+
             result = result.substring(chunkEndIdx + CHUNK_END.length);
             // Find next chunk
             chunkEndIdx = result.indexOf(CHUNK_END);
@@ -249,10 +273,10 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
 async function dispatch(action: { handler: StaticId, params: any[] }) {
     let params = [...action.params];
     params.push(solv);
-    const handler = getSharedHandler(action.handler);
+    const handler = getHandler(action.handler);
     if (handler) {
         await handler(...params);
-    } else { // Server handler
+    } else { // Server action handler
         await dispatchServer(action);
     }
     await resolvePendingSignals();

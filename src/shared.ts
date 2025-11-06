@@ -48,6 +48,14 @@ export type UpdateElement = {
     children: Id[] | undefined,
 };
 
+export const ACTION_HANDLER_STATIC_ID_PREFIX = 'a_';
+export const SERVER_ACTION_HANDLER_STATIC_ID_PREFIX = 'A_';
+export const EFFECT_HANDLER_STATIC_ID_PREFIX = 'e_';
+export const SERVER_EFFECT_HANDLER_STATIC_ID_PREFIX = 'E_';
+
+export const SIGNAL_ID_PREFIX = 's';
+export const ELEMENT_ID_PREFIX = 'n';  // node
+
 export const DOCUMENT = '$document';
 export const BODY = '$body';
 
