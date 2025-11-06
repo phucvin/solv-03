@@ -8,6 +8,7 @@ export default async function ({ counterMap }: { counterMap: Signal }, solv: Sol
     const newCount = solv.newSignal(0);
     const newCountTxt = solv.newElement('input');
     newCountTxt.set('type', 'text');
+    newCountTxt.set('value', newCount.get());
     newCountTxt.set('class', 'bg-gray-50 border border-gray-300 text-center');
     // TODO: bind
     newCountTxt.set('oninput',
@@ -20,7 +21,7 @@ export default async function ({ counterMap }: { counterMap: Signal }, solv: Sol
         'disabled:opacity-50 disabled:cursor-not-allowed ');
     addBtn.set('onclick', [
         { handler: aAdding, params: [newCountTxt.id] },
-        { handler: aAdd, params: [counterMap.id, newCount.id, newCountTxt.id] },
+        { handler: aAdd, params: [counterMap.id, newCount.id] },
     ]);
     solv.addEffect(eNewCount, [newCount.id, newCountTxt.id, addBtn.id]);
 

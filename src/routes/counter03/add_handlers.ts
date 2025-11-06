@@ -11,7 +11,6 @@ export const aTxtChange = registerActionHandler('ap',
 
 export const eNewCount = registerEffectHandler('aq',
     (newCountId: Id, newCountTxtId: Id, addBtnId: Id, solv: Solv) => {
-        console.log(typeof window);
         if (typeof window === 'undefined') return;
 
         const newCount = solv.getSignal(newCountId).get();
@@ -33,7 +32,7 @@ export const aAdding = registerActionHandler('ao',
 
 // Only server can add counter
 export const aAdd = registerServerActionHandler('ag',
-    async (counterMapId: Id, newCountId: Id, newCountTxtId: Id, solv: Solv) => {
+    async (counterMapId: Id, newCountId: Id, solv: Solv) => {
         let newCount = solv.getSignal(newCountId).get();
         if (!Number.isInteger(Number(newCount))) {
             throw new Error(`Invalid count ${newCount}`);
@@ -47,7 +46,13 @@ export const aAdd = registerServerActionHandler('ag',
         if (!counterMap.countToViewMap) {
             counterMap.countToViewMap = {};
         }
-        const view = await Counter({ count, delete_: solv.getSignal(counterMap.delete_) }, solv);
+        const view = await Counter(
+            {
+                count,
+                delete_: solv.getSignal(counterMap.delete_),
+                title: `Counter ${count.id}`,
+            },
+            solv);
         view.set('style',
             'transition: transform 0.5s ease-in-out; transform: translate(-100px, 0px)');
         counterMap.countToViewMap[count.id] = view.id;
@@ -60,10 +65,9 @@ export const aAdd = registerServerActionHandler('ag',
 
         solv.addEffect(eAdd, [view.id]);
 
-        // Simulate long processing time, then reset text field from server-side
+        // Simulate long processing time, then reset count from server-side
         await new Promise(resolve => setTimeout(resolve, 500));
-        solv.getElement(newCountTxtId).set('value', 'Added');
-        solv.getSignal(newCountId).set(0);
+        solv.getSignal(newCountId).set(Math.trunc(Math.random() * 20));
     });
 
 export const eAdd = registerEffectHandler('an',
