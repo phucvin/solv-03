@@ -164,20 +164,24 @@ export async function act(req: Request, res: Response) {
             return;
         }
 
-        let data: any;
-        try {
-            data = await cache.get(cid);
-        } catch (err) {
-            res.writeHead(404, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
-            return;
-        }
-        const { signals, effects, nextNumber } = data;
-        if (!signals || !effects || !nextNumber) {
-            console.error('Missing signals/effects/nextNumber from cache');
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ 'error': 'Internal error' }));
-            return;
+        let { signals, effects, nextNumber } = action.client || {};
+        // Get from cache if client didn't send current state
+        if (!(signals && effects && nextNumber)) {
+            let data: any;
+            try {
+                data = await cache.get(cid);
+            } catch (err) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
+                return;
+            }
+            ({ signals, effects, nextNumber } = data);
+            if (!signals || !effects || !nextNumber) {
+                console.error('Missing signals/effects/nextNumber from cache');
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ 'error': 'Internal error' }));
+                return;
+            }
         }
 
         const cm = createCommandMap(nextNumber);

@@ -1,10 +1,19 @@
-import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect, ACTION_HANDLER_STATIC_ID_PREFIX, SERVER_ACTION_HANDLER_STATIC_ID_PREFIX } from './shared';
+import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
 import { getHandler, isSignal } from './registry';
 import { DOCUMENT, BODY } from './shared';
 
 declare const SOLV_CID: any;
 
+// Client's all signals and effects
 const signals: { [id: Id]: any } = {};
+const effects: AddEffect[] = [];
+// Similar to effects, but as a dictionary for faster lookup based on signalId
+const effectMap: { [signalId: Id]: AddEffect[] } = {};
+
+// Local command map, semi-reset after sending to server
+let lcm: CommandMap;
+
+// Temporary holder for created but not yet attached elements
 // @ts-ignore
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
 
@@ -69,9 +78,6 @@ function applyElementUpdate(id: Id, update: UpdateElement) {
     }
 }
 
-let lcm: CommandMap;
-const effectMap: { [signalId: Id]: AddEffect[] } = {};
-
 function applyCommandMap(cm: CommandMap) {
     for (const ce of cm.createElements || []) {
         createElement(ce.id, ce.tag);
@@ -85,13 +91,16 @@ function applyCommandMap(cm: CommandMap) {
     for (const [id, value] of Object.entries(cm.setSignals || {})) {
         signals[id] = value;
     }
-    for (const addEffect of cm.addEffects || []) {
-        for (const paramId of addEffect.params) {
-            if (isSignal(paramId)) {
-                if (!effectMap[paramId]) {
-                    effectMap[paramId] = [];
+    if (cm.addEffects) {
+        effects.push(...cm.addEffects);
+        for (const addEffect of cm.addEffects || []) {
+            for (const paramId of addEffect.params) {
+                if (isSignal(paramId)) {
+                    if (!effectMap[paramId]) {
+                        effectMap[paramId] = [];
+                    }
+                    effectMap[paramId].push(addEffect);
                 }
-                effectMap[paramId].push(addEffect);
             }
         }
     }
@@ -177,6 +186,7 @@ const solv: Solv = {
         }
         lcm.addEffects.push(addEffect);
 
+        effects.push(addEffect);
         for (const paramId of params) {
             if (isSignal(paramId)) {
                 if (!effectMap[paramId]) {
@@ -213,14 +223,23 @@ async function resolvePendingSignals() {
     tempElementMap.clear();
 }
 
-async function dispatchServer(action: { handler: StaticId, params: any[] }) {
-    const body = JSON.stringify({ cid: SOLV_CID, ...action, cm: lcm });
+async function dispatchServer(action: { handler: StaticId, params: any[] }, resend = false) {
+    const body = JSON.stringify({
+        cid: SOLV_CID,
+        cm: lcm,
+        client: resend ? { signals, effects, nextNumber: lcm.nextNumber } : undefined,
+        ...action
+    });
     console.log('dispatchServer', body);
     const res = await fetch('/action', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
     });
+    if (res.status == 404 && resend == false) {
+        console.log('Server lost cache, resending client state', res.statusText);
+        return dispatchServer(action, resend = true);
+    }
     if (!res.ok) {
-        console.error('Dispatch response error', res.status);
+        console.error('Dispatch response error', res.statusText);
         return;
     }
 
