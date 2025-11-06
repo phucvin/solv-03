@@ -4,7 +4,7 @@ import { DOCUMENT, BODY } from './shared';
 
 declare const SOLV_CID: any;
 
-const signalCurrentValues: { [id: Id]: any } = {};
+const signals: { [id: Id]: any } = {};
 // @ts-ignore
 const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
 
@@ -83,7 +83,7 @@ function applyCommandMap(cm: CommandMap) {
         document.getElementById(id)?.remove();
     }
     for (const [id, value] of Object.entries(cm.setSignals || {})) {
-        signalCurrentValues[id] = value;
+        signals[id] = value;
     }
     for (const addEffect of cm.addEffects || []) {
         for (const paramId of addEffect.params) {
@@ -102,7 +102,7 @@ function applyCommandMap(cm: CommandMap) {
         deleteElements: undefined,
         setSignals: undefined,
         addEffects: undefined,
-        pendingSignals: undefined,
+        pendingSignals: cm.pendingSignals,
     };
 }
 
@@ -154,12 +154,9 @@ const solv: Solv = {
     getSignal: (id: Id) => {
         return {
             id,
-            get: () => signalCurrentValues[id],
+            get: () => signals[id],
             set: (newValue: any) => {
-                // console.log(`signal(id:${id}).set`, newValue);
-
-                signalCurrentValues[id] = newValue;
-
+                signals[id] = newValue;
                 if (!lcm.pendingSignals) {
                     lcm.pendingSignals = {};
                 }
@@ -188,8 +185,6 @@ const solv: Solv = {
 };
 
 async function resolvePendingSignals() {
-    // console.log('resolvePendingSignals', lcm.pendingSignals, effectMap);
-
     let repeats = 5;
     while (Object.keys(lcm.pendingSignals || {}).length > 0 && --repeats > 0) {
         const pendingSignals = lcm.pendingSignals || {};
@@ -217,7 +212,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
     const res = await fetch('/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cid: SOLV_CID, ...action }),
+        body: JSON.stringify({ cid: SOLV_CID, ...action, cm: lcm }),
     });
     if (!res.ok) {
         console.error('Dispatch response error', res.status);
@@ -239,8 +234,11 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
         let chunkEndIdx = result.indexOf(CHUNK_END);
         while (chunkEndIdx >= 0) {
             console.assert(result.startsWith(CHUNK_BEGIN));
-            const diff = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
-            console.log('diff:', JSON.stringify(diff, null, 2));
+
+            const cm = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
+            console.log('cm:', JSON.stringify(cm, null, 2));
+            applyCommandMap(cm);
+            
             result = result.substring(chunkEndIdx + CHUNK_END.length);
             // Find next chunk
             chunkEndIdx = result.indexOf(CHUNK_END);
@@ -249,26 +247,22 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
 }
 
 async function dispatch(action: { handler: StaticId, params: any[] }) {
-    // console.log('dispatch', action);
-
     let params = [...action.params];
     params.push(solv);
     const handler = getSharedHandler(action.handler);
     if (handler) {
         await handler(...params);
-        await resolvePendingSignals();
     } else { // Server handler
         await dispatchServer(action);
     }
-
-    //console.log('lcm', JSON.stringify(lcm));
+    await resolvePendingSignals();
 }
 
 // @ts-ignore
 globalThis.solv = {
     applyCommandMap,
     dispatch,
-    signalCurrentValues,
+    signals,
     effectMap,
 };
 
