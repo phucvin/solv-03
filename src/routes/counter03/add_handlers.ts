@@ -3,6 +3,12 @@ import { Id, Solv } from "../../shared";
 import { CounterMap } from ".";
 import Counter from "./counter";
 
+export const aTxtChange = registerActionHandler('ap',
+    (newCountTxtId: Id, newCountId: Id, solv: Solv) => {
+        // @ts-ignore
+        solv.getSignal(newCountId).set(document.getElementById(newCountTxtId).value);
+    });
+
 export const aAdding = registerActionHandler('ao',
     async (newCountTxtId: Id, solv: Solv) => {
         solv.getElement(newCountTxtId).set('value', 'Adding...');
@@ -11,11 +17,11 @@ export const aAdding = registerActionHandler('ao',
 // Only server can add counter
 export const aAdd = registerServerActionHandler('ag',
     async (counterMapId: Id, newCountId: Id, newCountTxtId: Id, solv: Solv) => {
-        const newCount: number = solv.getSignal(newCountId).get();
-        if (newCount < 0) {
-            console.error('internal error: invalid count', newCount);
-            return;
+        let newCount = solv.getSignal(newCountId).get();
+        if (!Number.isInteger(Number(newCount))) {
+            throw new Error(`Invalid count ${newCount}`);
         }
+        newCount = Number.parseInt(newCount);
 
         const signal = solv.getSignal(counterMapId);
         const counterMap: CounterMap = signal.get();

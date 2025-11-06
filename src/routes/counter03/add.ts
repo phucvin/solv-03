@@ -1,5 +1,5 @@
 import { Element, Solv, Signal } from "../../shared";
-import { aAdding, aAdd } from "./add_handlers";
+import { aTxtChange, aAdding, aAdd } from "./add_handlers";
 
 export default async function ({ counterMap }: { counterMap: Signal }, solv: Solv): Promise<Element> {
     const main = solv.newElement('div');
@@ -9,6 +9,8 @@ export default async function ({ counterMap }: { counterMap: Signal }, solv: Sol
     const newCountTxt = solv.newElement('input');
     newCountTxt.set('type', 'text');
     newCountTxt.set('class', 'bg-gray-50 border border-gray-300 text-center');
+    // TODO: bind
+    newCountTxt.set('onchange', { handler: aTxtChange, params: [newCountTxt.id, newCount.id] });
 
     const addBtn = solv.newElement('button');
     addBtn.set('innerHTML', 'Add');
