@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 
 import { Id, HasId, StaticId, CommandMap, Solv, AddEffect } from "./shared";
 import { getServerHandler, getSharedHandler } from "./registry";
-import * as cache from "./cache01";
+import * as cache from "./cache02";
 
 function numberToId(x: number) {
     if (x < 0) {
@@ -130,7 +130,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     await app(solv);
     await runAddedEffects(cm, solv);
 
-    const cid = cache.insert({
+    const cid = await cache.insert({
         signals,
         effects: cm.addEffects,
         nextNumber: cm.nextNumber,
@@ -145,7 +145,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     <script type="module">
         import '/client.mjs';
         import './index_handlers.mjs';
-        globalThis.SOLV_CID = ${cid};
+        globalThis.SOLV_CID = '${cid}';
         solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
     </script>
 </html>
@@ -168,7 +168,15 @@ export async function act(req: Request, res: Response) {
             return;
         }
 
-        const { signals, effects, nextNumber } = cache.get(cid);
+        let data: any;
+        try {
+            data = await cache.get(cid);
+        } catch (err) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
+            return;
+        }
+        const { signals, effects, nextNumber } = data;
         if (!signals || !effects || !nextNumber) {
             console.error('Missing signals/effects/nextNumber from cache');
             res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -183,7 +191,7 @@ export async function act(req: Request, res: Response) {
         params.push(solv);
         await handler(...params);
 
-        cache.update(cid, {
+        await cache.update(cid, {
             signals,
             effects: effects.concat(cm.addEffects),
             nextNumber: cm.nextNumber,
