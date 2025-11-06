@@ -1,15 +1,11 @@
 import { Request, Response } from "express";
 
-import { Id, HasId, StaticId, CommandMap, Solv, AddEffect } from "./shared";
+import { Id, HasId, StaticId, CommandMap, Solv, ELEMENT_ID_PREFIX, SIGNAL_ID_PREFIX } from "./shared";
 import { getServerHandler, getSharedHandler } from "./registry";
 import * as cache from "./cache01";
 
-function numberToId(x: number) {
-    if (x < 0) {
-        return `@${-x}`;
-    } else {
-        return `_${x}`;
-    }
+function numberToId(prefix: string, x: number) {
+    return `${prefix}${x}`;
 }
 
 function toIds(xs: (HasId | Id)[]) {
@@ -35,7 +31,7 @@ function initUpdateElements(cm: CommandMap, id: Id) {
 function createSolv(signals: { [id: Id]: any }, cm: CommandMap) {
     const solv: Solv = {
         newElement: (tag: string) => {
-            const id = numberToId(cm.nextNumber!++);
+            const id = numberToId(ELEMENT_ID_PREFIX, cm.nextNumber!++);
             if (!cm.createElements) {
                 cm.createElements = [];
             }
@@ -43,7 +39,7 @@ function createSolv(signals: { [id: Id]: any }, cm: CommandMap) {
             return solv.getElement(id);
         },
         newSignal: (initialValue: any) => {
-            const id = numberToId(cm.nextNumber!++);
+            const id = numberToId(SIGNAL_ID_PREFIX, cm.nextNumber!++);
             signals[id] = initialValue;
             if (!cm.setSignals) {
                 cm.setSignals = {};
