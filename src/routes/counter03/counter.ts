@@ -1,31 +1,6 @@
-import { registerSharedComponent, registerSharedHandler } from "../../server";
-import { Id, Element, Solv, Signal } from "../../shared";
-
-const eTxt = registerSharedHandler('ah', (countId: Id, countTxtId: Id, solv: Solv) => {
-    const count = solv.getSignal(countId);
-    const countTxt = solv.getElement(countTxtId);
-    countTxt.set('innerHTML', `${count.get()}`);
-});
-
-const eDelete = registerSharedHandler('ai', (countId: Id, deleteBtnId: Id, solv: Solv) => {
-    const count = solv.getSignal(countId);
-    const deleteBtn = solv.getElement(deleteBtnId);
-    if (count.get() >= 10) {
-        deleteBtn.set('disabled', 1);
-    } else {
-        deleteBtn.set('disabled', null);
-    }
-});
-
-const aInc = registerSharedHandler('aj', (countId: Id, solv: Solv) => {
-    const count = solv.getSignal(countId);
-    count.set(count.get() + 1);
-});
-
-const aDelete = registerSharedHandler('ak', (countId: Id, deleteId: Id, solv: Solv) => {
-    const delete_ = solv.getSignal(deleteId);
-    delete_.set((delete_.get() || []).concat([countId]));
-});
+import { Element, Solv, Signal } from "../../shared";
+import { registerSharedComponent } from "../../registry";
+import { eTxt, eDelete, aInc, aDelete } from "./counter_handlers";
 
 async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, solv: Solv): Promise<Element> {
     const main = solv.newElement('div');

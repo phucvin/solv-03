@@ -1,13 +1,5 @@
-import { CounterMap } from ".";
-import { registerSharedHandler } from "../../server";
-import { Id, Element, Solv, Signal } from "../../shared";
-
-const eMain = registerSharedHandler('am', (counterMapId: Id, mainId: Id, solv: Solv) => {
-    const signal = solv.getSignal(counterMapId);
-    const view = solv.getElement(mainId);
-    const counterMap : CounterMap = signal.get();
-    view.setChildren(counterMap.viewOrder || []);
-});
+import { Element, Solv, Signal } from "../../shared";
+import { eMain } from "./list_handlers";
 
 export default async function ({ counterMap } : { counterMap: Signal }, solv: Solv): Promise<Element> {
     const main = solv.newElement('div');

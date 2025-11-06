@@ -1,55 +1,5 @@
 import { Id, HasId, StaticId, CommandMap, Solv } from "./shared";
-
-const seenStaticIds = new Set<StaticId>();
-let serverHandlers: { [staticId: StaticId]: any } = {};
-let sharedHandlers: { [staticId: StaticId]: any } = {};
-let sharedComponentCode: { [name: string]: string } = {};
-
-function addStaticId(staticId: StaticId) {
-    if (seenStaticIds.has(staticId)) {
-        throw new Error(`Duplicate Static ID: ${staticId}`);
-    }
-    seenStaticIds.add(staticId);
-}
-
-export function registerServerHandler(staticId: StaticId, handler: any): StaticId {
-    addStaticId(staticId);
-    serverHandlers[staticId] = handler;
-    return staticId;
-}
-
-export function registerSharedHandler(staticId: StaticId, handler: any): StaticId {
-    addStaticId(staticId);
-    sharedHandlers[staticId] = handler;
-    return staticId;
-}
-
-export function registerSharedComponent(name: string, code: string) {
-    sharedComponentCode[name] = code;
-}
-
-let sharedComponentAndHandlerCodeCache = new Map<any, string>();
-
-function getSharedComponentAndHandlerCode(key: any) {
-    if (sharedComponentAndHandlerCodeCache.has(key)) {
-        return sharedComponentAndHandlerCodeCache.get(key);
-    }
-
-    let s = '';
-    for (const [name, code] of Object.entries(sharedComponentCode)) {
-        // Code with aliases so it work both locally an on workers 
-        s += `const ${name} = ${code};\n`;
-        s += `const _${name.toLowerCase()}_mjs = { default: ${name} };\n`;
-    }
-    s += '\nwindow.sharedHandlers = {\n';
-    for (const [staticId, handler] of Object.entries(sharedHandlers)) {
-        s += `'${staticId}': ${handler.toString()},`
-    }
-    s += '};';
-
-    sharedComponentAndHandlerCodeCache.set(key, s);
-    return sharedComponentAndHandlerCodeCache.get(key);
-}
+import { getServerHandler, getSharedHandler, getSharedComponentAndHandlerCode } from "./registry";
 
 function numberToId(x: number) {
     if (x < 0) {
@@ -149,9 +99,9 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
     await app(solv);
 
     for (const addEffect of cm.addEffects || []) {
-        let handler = serverHandlers[addEffect.handler];
+        let handler = getServerHandler(addEffect.handler);
         if (!handler) {
-            handler = sharedHandlers[addEffect.handler];
+            handler = getSharedHandler(addEffect.handler);
         }
         if (!handler) {
             throw new Error(`Handler not found whie processing added effects: ${addEffect.handler}`);
