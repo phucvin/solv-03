@@ -47,7 +47,11 @@ function applyElementUpdate(id: Id, update: UpdateElement) {
                 node.removeAttribute(name);
             }
         } else if (name.startsWith('on')) {
-            node.setAttribute(name, `solv.dispatch(${JSON.stringify(value)})`);
+            let code = '';
+            for (const action of (Array.isArray(value) ? value : [value])) {
+                code += `solv.dispatch(${JSON.stringify(action)});`;
+            }
+            node.setAttribute(name, code);
         } else {
             // @ts-ignore
             node[name] = value;

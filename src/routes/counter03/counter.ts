@@ -1,13 +1,15 @@
 import { Element, Solv, Signal } from "../../shared";
 import { eTxt, eDelete, aInc, aDelete } from "./counter_handlers";
 
-async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, solv: Solv): Promise<Element> {
+async function Counter(
+    { count, delete_, title }: { count: Signal, delete_: Signal, title?: string},
+    solv: Solv): Promise<Element> {
     const main = solv.newElement('div');
     main.set('class', 'bg-white p-8 rounded-lg shadow-md flex flex-col items-center space-x-4 space-y-4');
 
-    const title = solv.newElement('h1');
-    title.set('class', 'text-3xl font-bold mb-4');
-    title.set('innerHTML', 'Counter');
+    const titleH1 = solv.newElement('h1');
+    titleH1.set('class', 'text-3xl font-bold mb-4');
+    titleH1.set('innerHTML', title || 'Counter');
 
     const countTxt = solv.newElement('span');
     countTxt.set('class', 'text-5xl font-semibold text-gray-800');
@@ -28,7 +30,7 @@ async function Counter({ count, delete_ }: { count: Signal, delete_: Signal }, s
     tmpTxt.set('type', 'text');
     tmpTxt.set('class', 'bg-gray-50 border border-gray-300 text-center');
 
-    main.setChildren([title, countTxt, incBtn, deleteBtn, tmpTxt]);
+    main.setChildren([titleH1, countTxt, incBtn, deleteBtn, tmpTxt]);
     return main;
 }
 
