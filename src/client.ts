@@ -1,5 +1,5 @@
-import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect } from './shared';
-import { getHandler } from './registry';
+import { Id, UpdateElement, CommandMap, StaticId, HasId, Solv, AddEffect, ACTION_HANDLER_STATIC_ID_PREFIX, SERVER_ACTION_HANDLER_STATIC_ID_PREFIX } from './shared';
+import { getHandler, isSignal } from './registry';
 import { DOCUMENT, BODY } from './shared';
 
 declare const SOLV_CID: any;
@@ -11,7 +11,7 @@ const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
 function createElement(id: Id, tag: string) {
     const node = document.createElement(tag);
     node.id = id;
-// @ts-ignore
+    // @ts-ignore
     tempElementMap.set(id, new WeakRef(node));
 }
 
@@ -87,10 +87,12 @@ function applyCommandMap(cm: CommandMap) {
     }
     for (const addEffect of cm.addEffects || []) {
         for (const paramId of addEffect.params) {
-            if (!effectMap[paramId]) {
-                effectMap[paramId] = [];
+            if (isSignal(paramId)) {
+                if (!effectMap[paramId]) {
+                    effectMap[paramId] = [];
+                }
+                effectMap[paramId].push(addEffect);
             }
-            effectMap[paramId].push(addEffect);
         }
     }
     tempElementMap.clear();
@@ -176,10 +178,12 @@ const solv: Solv = {
         lcm.addEffects.push(addEffect);
 
         for (const paramId of params) {
-            if (!effectMap[paramId]) {
-                effectMap[paramId] = [];
+            if (isSignal(paramId)) {
+                if (!effectMap[paramId]) {
+                    effectMap[paramId] = [];
+                }
+                effectMap[paramId].push(addEffect);
             }
-            effectMap[paramId].push(addEffect);
         }
     }
 };
@@ -196,8 +200,9 @@ async function resolvePendingSignals() {
                     const params: any[] = [...effect.params];
                     params.push(solv);
                     await handler(...params);
-                } else { // Server handler
-                    // TODO: Confirm it's an action, so it doesn't need execute
+                } else { // Server effect handler
+                    throw new Error(
+                        `Unimplemented executing server effect handler: ${effect.handler}`);
                 }
             }
         }
@@ -238,7 +243,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }) {
             const cm = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
             console.log('cm', JSON.stringify(cm));
             applyCommandMap(cm);
-            
+
             result = result.substring(chunkEndIdx + CHUNK_END.length);
             // Find next chunk
             chunkEndIdx = result.indexOf(CHUNK_END);
@@ -252,7 +257,7 @@ async function dispatch(action: { handler: StaticId, params: any[] }) {
     const handler = getHandler(action.handler);
     if (handler) {
         await handler(...params);
-    } else { // Server handler
+    } else { // Server action handler
         await dispatchServer(action);
     }
     await resolvePendingSignals();
