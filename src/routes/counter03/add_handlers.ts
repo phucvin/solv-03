@@ -1,9 +1,10 @@
-import { registerActionHandler } from "../../registry";
+import { registerEffectHandler, registerServerActionHandler } from "../../registry";
 import { Id, Solv } from "../../shared";
 import { CounterMap } from ".";
 import Counter from "./counter";
 
-export const aAdd = registerActionHandler('ag',
+// Only server can add counter
+export const aAdd = registerServerActionHandler('ag',
     async (counterMapId: Id, newCountId: Id, solv: Solv) => {
         const newCount: number = solv.getSignal(newCountId).get();
         if (newCount < 0) {
@@ -19,7 +20,8 @@ export const aAdd = registerActionHandler('ag',
             counterMap.countToViewMap = {};
         }
         const view = await Counter({ count, delete_: solv.getSignal(counterMap.delete_) }, solv);
-        view.set('style', 'transition: transform 0.5s ease-in-out; transform: translate(-100px, 0px)');
+        view.set('style',
+            'transition: transform 0.5s ease-in-out; transform: translate(-100px, 0px)');
         counterMap.countToViewMap[count.id] = view.id;
         if (!counterMap.viewOrder) {
             counterMap.viewOrder = [];
@@ -28,10 +30,11 @@ export const aAdd = registerActionHandler('ag',
 
         signal.set(counterMap);
 
-        // Animation, client-side only
-        if (requestAnimationFrame) {
-            requestAnimationFrame(() => {
-                document.getElementById(view.id)!.style.transform = '';
-            });
-        }
+        solv.addEffect(eAdd, [view.id]);
+    });
+
+export const eAdd = registerEffectHandler('an',
+    (viewId: Id, solv: Solv) => {
+        requestIdleCallback(() =>
+            solv.getElement(viewId).set('style', 'transition: transform 0.5s ease-in-out'));
     });

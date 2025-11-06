@@ -14,14 +14,13 @@ const effectMap: { [signalId: Id]: AddEffect[] } = {};
 let lcm: CommandMap;
 
 // Temporary holder for created but not yet attached elements
-// @ts-ignore
-const tempElementMap = new Map<Id, WeakRef<HTMLElement>>();
+const tempElementMap = new Map<Id, HTMLElement>();
 
 function createElement(id: Id, tag: string) {
     const node = document.createElement(tag);
     node.id = id;
     // @ts-ignore
-    tempElementMap.set(id, new WeakRef(node));
+    tempElementMap.set(id, node);
 }
 
 function findElementById(id: Id): HTMLElement {
@@ -35,7 +34,7 @@ function findElementById(id: Id): HTMLElement {
     if (node) {
         return node;
     }
-    return tempElementMap.get(id)!.deref()!;
+    return tempElementMap.get(id)!;
 }
 
 function applyElementUpdate(id: Id, update: UpdateElement) {
@@ -78,7 +77,19 @@ function applyElementUpdate(id: Id, update: UpdateElement) {
     }
 }
 
-function applyCommandMap(cm: CommandMap) {
+async function runAddedEffects(cm: CommandMap, solv: Solv) {
+    for (const addEffect of cm.addEffects || []) {
+        let handler = getHandler(addEffect.handler);
+        if (!handler) {
+            throw new Error(`Unimplemented executing server effect handler: ${addEffect.handler}`);
+        }
+        let params: any = [...addEffect.params];
+        params.push(solv);
+        await handler(...params);
+    }
+}
+
+async function applyCommandMap(cm: CommandMap) {
     for (const ce of cm.createElements || []) {
         createElement(ce.id, ce.tag);
     }
@@ -104,7 +115,7 @@ function applyCommandMap(cm: CommandMap) {
             }
         }
     }
-    tempElementMap.clear();
+    await runAddedEffects(cm, solv);
 
     lcm = {
         nextNumber: cm.nextNumber,
@@ -261,7 +272,7 @@ async function dispatchServer(action: { handler: StaticId, params: any[] }, rese
 
             const cm = JSON.parse(result.substring(CHUNK_BEGIN.length, chunkEndIdx));
             console.log('cm', JSON.stringify(cm));
-            applyCommandMap(cm);
+            await applyCommandMap(cm);
 
             result = result.substring(chunkEndIdx + CHUNK_END.length);
             // Find next chunk
