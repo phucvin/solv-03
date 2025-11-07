@@ -37,6 +37,7 @@ export type CommandMap = {
     nextNumber: number | undefined,
     createElements: CreateElement[] | undefined,
     updateElements: { [id: Id] : UpdateElement } | undefined,
+    // TODO: this is probably not needed
     deleteElements: Id[] | undefined,
     setSignals: { [id: Id]: any } | undefined,
     addEffects: AddEffect[] | undefined,
