@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 
 import { Id, HasId, StaticId, CommandMap, Solv, ELEMENT_ID_PREFIX, SIGNAL_ID_PREFIX } from "./shared";
 import { getServerHandler, getHandler } from "./registry";
-import * as cache from "./cache01";
+import * as cache from "./cache02";
 import ssr from "./ssr";
 
 function numberToId(prefix: string, x: number) {
