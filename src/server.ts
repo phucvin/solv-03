@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { Id, HasId, StaticId, CommandMap, Solv, ELEMENT_ID_PREFIX, SIGNAL_ID_PREFIX } from "./shared";
 import { getServerHandler, getHandler } from "./registry";
 import * as cache from "./cache01";
+import ssr from "./ssr";
 
 function numberToId(prefix: string, x: number) {
     return `${prefix}${x}`;
@@ -132,20 +133,7 @@ export async function serve(app: (solv: Solv) => Promise<void>) {
         nextNumber: cm.nextNumber,
     });
 
-    const html = `
-<html>
-    <head>
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <head>
-    <body></body>
-    <script type="module">
-        import '/client.mjs';
-        import './index_handlers.mjs';
-        globalThis.SOLV_CID = ${cid};
-        solv.applyCommandMap(JSON.parse(\`\n${JSON.stringify(cm, null, 2)}\n\`));
-    </script>
-</html>
-    `;
+    const html = ssr(cid, cm);
 
     return html;
 }
