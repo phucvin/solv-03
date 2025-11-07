@@ -1,5 +1,10 @@
 # Solv - Stateless Offline-capable LiveView - Prototype 03
 
+Solv's main idea is that stateless servers keep client's state in a volatile
+cache. It enables server components that are also interactive, which is best of
+both worlds between LiveView and htmx. Then fine-grained reactivity is added to
+achieve efficient DOM updates + minimal payload size.
+
 ## What is this?
 A prototype to show:
 1. Server can create & modify client's DOM directly, simlar to LiveView/htmx but
@@ -28,10 +33,10 @@ complex offline interaction (as constrast to having declarative JSX & signals).
 
 ## Demos
 
-Run it yourself: https://stackblitz.com/~/github.com/phucvin/solv-03
+Run it yourself online: https://stackblitz.com/~/github.com/phucvin/solv-03
 
-Also deployed to: https://solv-03.phucvin.workers.dev/
-- Notes: The demo page uses a free plan of Cloudflare Workers.
+Branch `workers` is also auto-deployed to:
+https://solv-03.phucvin.workers.dev/ (this uses a free plan of Cloudflare Workers)
 
 Details:
 - Counter 01: simple counter work entirely at client.
