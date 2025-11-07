@@ -45,6 +45,13 @@ Details:
 also renders the component server-side (note that client handles the loading
 effect when button is clicked).
 
+You can open console and see `dispatchServer` (what is sent to the server) and
+`cm` (CommandMap, what server responded) being logs when a server action is executed.
+- When the server lost cached client state (e.g. after keeping a demo page open for
+a while, or 10s if running with Stackblitz), making a server action will show log
+`Server lost cache, resending client state`, and the next `dispatchServer` will
+contains a bigger payload than before since it contains client's full current state.
+
 Code for these demos are int `src/routes`.
 
 ## How does it works?
