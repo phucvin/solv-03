@@ -103,6 +103,7 @@ This prototype version is focusing on:
 - Offline-capable to allow DOM updates on both client and server
 
 TODOs:
+- SSE (e.g. using https://github.com/MatthewWid/better-sse)
 - Input field binding to signal
 - Streaming server responses
 - Remove signals & effects when all related elements are deleted, a GC (scanning effect params) is easiest first
