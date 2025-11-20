@@ -96,8 +96,9 @@ This prototype version is focusing on:
 - Offline-capable to allow DOM updates on both client and server
 
 TODOs:
+- Use Hono (https://hono.dev/docs/getting-started/cloudflare-workers)
 - Input field binding to signal
-- Streaming server responses
+- Streaming server responses, including the initial HTML (idea: https://lamplightdev.com/blog/2024/01/10/streaming-html-out-of-order-without-javascript/)
 - Remove signals & effects when all related elements are deleted, a GC (scanning effect params) is easiest first
 
 References:
