@@ -45,13 +45,6 @@ Details:
 also renders the component server-side (note that client handles the loading
 effect when button is clicked).
 
-You can open console and see `dispatchServer` (what is sent to the server) and
-`cm` (CommandMap, what server responded) being logs when a server action is executed.
-- When the server lost cached client state (e.g. after keeping a demo page open for
-a while, or 10s if running with Stackblitz), making a server action will show log
-`Server lost cache, resending client state`, and the next `dispatchServer` will
-contains a bigger payload than before since it contains client's full current state.
-
 Code for these demos are int `src/routes`.
 
 ## How does it works?
@@ -103,9 +96,9 @@ This prototype version is focusing on:
 - Offline-capable to allow DOM updates on both client and server
 
 TODOs:
-- SSE (e.g. using https://github.com/MatthewWid/better-sse)
+- Use Hono (https://hono.dev/docs/getting-started/cloudflare-workers)
 - Input field binding to signal
-- Streaming server responses
+- Streaming server responses, including the initial HTML (idea: https://lamplightdev.com/blog/2024/01/10/streaming-html-out-of-order-without-javascript/)
 - Remove signals & effects when all related elements are deleted, a GC (scanning effect params) is easiest first
 
 References:
