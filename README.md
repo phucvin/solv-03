@@ -107,6 +107,7 @@ TODOs:
 - Input field binding to signal
 - Streaming server responses, including the initial HTML (idea: https://lamplightdev.com/blog/2024/01/10/streaming-html-out-of-order-without-javascript/)
 - Remove signals & effects when all related elements are deleted, a GC (scanning effect params) is easiest first
+- Islands to minimize client state when resending to server
 
 References:
 - https://github.com/phucvin/solv-01/
