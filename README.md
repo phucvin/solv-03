@@ -108,6 +108,8 @@ TODOs:
 - Streaming server responses, including the initial HTML (idea: https://lamplightdev.com/blog/2024/01/10/streaming-html-out-of-order-without-javascript/)
 - Remove signals & effects when all related elements are deleted, a GC (scanning effect params) is easiest first
 - Islands to minimize client state when resending to server
+- Auto-splitting handler code to separate files using Babel (https://mcocirio.medium.com/build-your-own-babel-plugin-from-scratch-8db0162f983a, https://varunzxzx.github.io/blog/writing-babel-plugin, https://github.com/jamiebuilds/babel-handbook)
+- JSX to imperative code
 
 References:
 - https://github.com/phucvin/solv-01/
