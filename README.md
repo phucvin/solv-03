@@ -110,6 +110,7 @@ TODOs:
 - Islands to minimize client state when resending to server
 - Auto-splitting handler code to separate files using Babel (https://mcocirio.medium.com/build-your-own-babel-plugin-from-scratch-8db0162f983a, https://varunzxzx.github.io/blog/writing-babel-plugin, https://github.com/jamiebuilds/babel-handbook)
 - JSX to imperative code using https://github.com/ryansolid/dom-expressions
+- Try async context / goroutine context (ref: https://github.com/tc39/proposal-async-context, https://github.com/ansiwen/gctx)
 
 References:
 - https://github.com/phucvin/solv-01/
