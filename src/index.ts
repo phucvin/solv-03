@@ -1,4 +1,6 @@
-import express from 'express';
+import { Hono } from 'hono';
+import { serve as serveNode } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 
 import { serve, act } from './server';
 
@@ -8,29 +10,25 @@ import './routes/counter01/index_handlers.mjs';
 import './routes/counter02/index_handlers.mjs';
 import './routes/counter03/index_handlers.mjs';
 
-const app = express();
+const app = new Hono();
 
-app.use(express.static('.', { cacheControl: true, maxAge: '1h' }));
-app.use(express.json());
+app.use('*', serveStatic({ root: './' }));
 
-app.get('/routes/*path', (req, res) => {
-	import(`.${req.url}/index.mjs`)
-		.then(route => serve(route.default))
-		.then(html => {
-			res.writeHead(200, { 'Content-Type': 'text/html' });
-			res.end(html);
-		})
-		.catch(err => {
-			console.log('Error routing', req.url, err);
-			res.writeHead(500, { 'Content-Type': 'text/html' });
-			res.end('Internal Error');
-		});
+app.get('/routes/*', async (c) => {
+	try {
+		const route = await import(`.${c.req.path}/index.mjs`);
+		const html = await serve(route.default);
+		return c.html(html);
+	} catch (err) {
+		console.log('Error routing', c.req.path, err);
+		return c.text('Internal Error', 500);
+	}
 });
 
 app.post('/action', act);
 
-app.get('/', (req, res) => {
-	res.end(`
+app.get('/', (c) => {
+	return c.html(`
 <h1>Index</h1>
 <h2><a href="/routes/counter01">Counter 01</a></h2>
 <h2><a href="/routes/counter02">Counter 02</a></h2>
@@ -38,12 +36,14 @@ app.get('/', (req, res) => {
 	`);
 });
 
-app.get('*all', (req, res) => {
-	res.writeHead(404, { 'Content-Type': 'text/plain' });
-	res.end('Not Found');
+app.all('*', (c) => {
+	return c.text('Not Found', 404);
 });
 
 console.log('Starting solv-03');
 
 const port = 8080;
-app.listen(port);
+serveNode({
+	fetch: app.fetch,
+	port
+});

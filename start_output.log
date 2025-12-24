@@ -1,0 +1,36 @@
+
+> start
+> npm run build && cd build/ && node index.mjs
+
+
+> build
+> tsc && mjscjs --target . --buildDir './build' --srcDir './src' --module esm
+
+mjscjs
+• Resolving cache01.js..
+• Resolving client.js..
+• Resolving index.js..
+• Resolving registry.js..
+• Resolving routes/counter01/index_handlers.js..
+• Resolving routes/counter01/index.js..
+• Resolving routes/counter02/index_handlers.js..
+• Resolving routes/counter02/index.js..
+• Resolving routes/counter03/add_handlers.js..
+• Resolving routes/counter03/add.js..
+• Resolving routes/counter03/counter_handlers.js..
+• Resolving routes/counter03/counter.js..
+• Resolving routes/counter03/index_handlers.js..
+• Resolving routes/counter03/index.js..
+• Resolving routes/counter03/list_handlers.js..
+• Resolving routes/counter03/list.js..
+• Resolving server.js..
+• Resolving shared.js..
+• Resolving ssr.js..
+Processing completed successfully.
+Starting solv-03
+Clearing cache for cid 1 data {
+  signals: { s2: 10 },
+  effects: [ { handler: 'e_aa', params: [Array] } ],
+  nextNumber: 5
+}
+Terminated

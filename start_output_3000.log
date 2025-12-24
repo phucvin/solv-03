@@ -1,0 +1,168 @@
+
+> start
+> npm run build && cd build/ && node index.mjs
+
+
+> build
+> tsc && mjscjs --target . --buildDir './build' --srcDir './src' --module esm
+
+mjscjs
+• Resolving cache01.js..
+• Resolving client.js..
+• Resolving index.js..
+• Resolving registry.js..
+• Resolving routes/counter01/index_handlers.js..
+• Resolving routes/counter01/index.js..
+• Resolving routes/counter02/index_handlers.js..
+• Resolving routes/counter02/index.js..
+• Resolving routes/counter03/add_handlers.js..
+• Resolving routes/counter03/add.js..
+• Resolving routes/counter03/counter_handlers.js..
+• Resolving routes/counter03/counter.js..
+• Resolving routes/counter03/index_handlers.js..
+• Resolving routes/counter03/index.js..
+• Resolving routes/counter03/list_handlers.js..
+• Resolving routes/counter03/list.js..
+• Resolving server.js..
+• Resolving shared.js..
+• Resolving ssr.js..
+Processing completed successfully.
+Starting solv-03
+Error routing /routes/index_handlers.mjs Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/build/routes/index_handlers.mjs/index.mjs' imported from /app/build/index.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///app/build/routes/index_handlers.mjs/index.mjs'
+}
+Clearing cache for cid 1 data {
+  signals: { s3: 20, s9: 20 },
+  effects: [
+    { handler: 'e_ac', params: [Array] },
+    { handler: 'e_ad', params: [Array] },
+    { handler: 'e_ac', params: [Array] },
+    { handler: 'e_ad', params: [Array] }
+  ],
+  nextNumber: 13
+}
+Error routing /routes/index_handlers.mjs Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/build/routes/index_handlers.mjs/index.mjs' imported from /app/build/index.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///app/build/routes/index_handlers.mjs/index.mjs'
+}
+Clearing cache for cid 2 data {
+  signals: { s3: 20, s9: 20 },
+  effects: [
+    { handler: 'e_ac', params: [Array] },
+    { handler: 'e_ad', params: [Array] },
+    { handler: 'e_ac', params: [Array] },
+    { handler: 'e_ad', params: [Array] }
+  ],
+  nextNumber: 13
+}
+Error routing /routes/index_handlers.mjs Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/build/routes/index_handlers.mjs/index.mjs' imported from /app/build/index.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///app/build/routes/index_handlers.mjs/index.mjs'
+}
+Error routing /routes/index_handlers.mjs Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/build/routes/index_handlers.mjs/index.mjs' imported from /app/build/index.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///app/build/routes/index_handlers.mjs/index.mjs'
+}
+Clearing cache for cid 3 data {
+  signals: { s2: 10 },
+  effects: [ { handler: 'e_aa', params: [Array] } ],
+  nextNumber: 5
+}
+Clearing cache for cid 4 data {
+  signals: {
+    s1: [],
+    s2: { countToViewMap: undefined, viewOrder: undefined, delete_: 's1' },
+    s4: 0
+  },
+  effects: [
+    { handler: 'e_al', params: [Array] },
+    { handler: 'e_aq', params: [Array] },
+    { handler: 'e_am', params: [Array] }
+  ],
+  nextNumber: 8
+}
+Error routing /routes/index_handlers.mjs Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/build/routes/index_handlers.mjs/index.mjs' imported from /app/build/index.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///app/build/routes/index_handlers.mjs/index.mjs'
+}
+Error routing /routes/index_handlers.mjs Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/app/build/routes/index_handlers.mjs/index.mjs' imported from /app/build/index.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///app/build/routes/index_handlers.mjs/index.mjs'
+}
+Clearing cache for cid 5 data {
+  signals: { s2: 10 },
+  effects: [ { handler: 'e_aa', params: [Array] } ],
+  nextNumber: 5
+}
+Clearing cache for cid 6 data {
+  signals: { s3: 20, s9: 20 },
+  effects: [
+    { handler: 'e_ac', params: [Array] },
+    { handler: 'e_ad', params: [Array] },
+    { handler: 'e_ac', params: [Array] },
+    { handler: 'e_ad', params: [Array] }
+  ],
+  nextNumber: 13
+}
+Terminated

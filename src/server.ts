@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Context } from "hono";
 
 import { Id, HasId, StaticId, CommandMap, Solv, ELEMENT_ID_PREFIX, SIGNAL_ID_PREFIX } from "./shared";
 import { getServerHandler, getHandler } from "./registry";
@@ -149,18 +149,15 @@ function applyCommandMap(cm: CommandMap, signals: { [id: Id]: any }) {
     return cm;
 }
 
-export async function act(req: Request, res: Response) {
-    const action = req.body;
+export async function act(c: Context) {
+    const action = await c.req.json();
     const cid = action.cid;
     if (cid === undefined) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ 'error': 'Missing CID' }));
+        return c.json({ 'error': 'Missing CID' }, 400);
     } else {
         const handler = getServerHandler(action.handler);
         if (!handler) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ 'error': `Handler not found: ${action.handler}` }));
-            return;
+            return c.json({ 'error': `Handler not found: ${action.handler}` }, 400);
         }
 
         let { signals, effects } = action.client || {};
@@ -170,16 +167,12 @@ export async function act(req: Request, res: Response) {
             try {
                 data = await cache.get(cid);
             } catch (err) {
-                res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ 'error': `Cache not found for cid: ${cid}` }));
-                return;
+                return c.json({ 'error': `Cache not found for cid: ${cid}` }, 404);
             }
             ({ signals, effects } = data);
             if (!signals || !effects) {
                 console.error('Missing signals/effects/nextNumber from cache');
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ 'error': 'Internal error' }));
-                return;
+                return c.json({ 'error': 'Internal error' }, 500);
             }
         }
 
@@ -188,9 +181,7 @@ export async function act(req: Request, res: Response) {
             cm = applyCommandMap(action.cm, signals);
         } catch (err) {
             console.error('Error procesing command map', err);
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ 'error': 'Error processing command map' }));
-            return;
+            return c.json({ 'error': 'Error processing command map' }, 400);
         }
 
         const solv = createSolv(signals, cm);
@@ -216,8 +207,6 @@ export async function act(req: Request, res: Response) {
         }
         */
 
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.write(`|>${JSON.stringify(cm)}<|`);
-        res.end();
+        return c.text(`|>${JSON.stringify(cm)}<|`, 200, { 'Content-Type': 'application/json' });
     }
 }
