@@ -73,6 +73,42 @@ Functions (handlers) are identified by static string IDs.
 -   `e_...`: Client Effect Handler
 -   `E_...`: Server Effect Handler
 
+## Reactivity System: Dependency Tracking
+
+Solv uses an explicit, parameter-based dependency tracking system, primarily implemented in `src/client.ts`.
+
+1.  **Dependency Registration:**
+    When an effect is added via `solv.addEffect(handler, params)`, the system iterates through the `params`. Any parameter that identifies as a signal (checked via `isSignal` in `src/registry.ts`) is treated as a dependency.
+    The client maintains an `effectMap` (`{ [signalId: Id]: AddEffect[] }`). It adds the new effect to the list for every signal ID found in `params`.
+
+2.  **Change Detection:**
+    When `signal.set(value)` is called, the signal's ID is added to a `pendingSignals` map in the current CommandMap. This marks the signal as "dirty."
+
+3.  **Propagation Loop:**
+    The `resolvePendingSignals` function (in `src/client.ts`) is responsible for propagating changes.
+    -   It iterates through all IDs in `pendingSignals`.
+    -   For each ID, it retrieves the list of dependent effects from `effectMap`.
+    -   It executes the handlers for those effects.
+    -   If an effect handler modifies other signals, those are added to `pendingSignals`, and the loop repeats (up to a limit) until the system stabilizes.
+
+*Note: The server-side implementation in `src/server.ts` currently relies on re-executing handlers but does not seem to have the fully iterative `resolvePendingSignals` loop for deep dependency chains during a single action in the provided code, though it tracks `pendingSignals`.*
+
+## Importance of Serialization
+
+Serialization of signals and effects is crucial for Solv's "stateless" architecture.
+
+1.  **Stateless Server & Volatile Cache:**
+    The server does not maintain a persistent memory of every client's state. It relies on a volatile cache (`src/cache01.ts`) keyed by a Client ID (`cid`). If the server restarts or the cache expires, the server loses the context required to process actions.
+
+2.  **Context Restoration & Resilience:**
+    When a client sends a server action, it can optionally include its entire state (signals and effects).
+    -   If the server has the state in cache, it uses it.
+    -   If the cache is missing (404), the client is instructed to resend the request *with* the full serialized state.
+    This ensures that the application remains functional even if the server is stateless or restarts.
+
+3.  **Offline Synchronization:**
+    Clients can continue to work offline, updating their local signals and DOM. When they eventually reconnect and trigger a server action, the serialized state ensures the server receives the *current* state of the world, not the stale state from the last connection. This allows the server to apply the correct logic and updates based on user interactions that happened offline.
+
 ## Session Lifecycle
 
 ### 1. Page Request (Initial Load)
@@ -86,7 +122,7 @@ Functions (handlers) are identified by static string IDs.
 6.  **Response:** The server sends the HTML, which includes:
     -   The rendered DOM.
     -   A script tag initializing `globalThis.SOLV_CID`.
-    -   A script tag calling `solv.applyCommandMap` with the remaining state (signals, effects) for hydration.
+    -   A script tag calling `solv.applyCommandMap` with the remaining state (signals and effects) for hydration.
 
 ### 2. Client Action (Local/Offline)
 **Entry Point:** `src/client.ts` -> Event Handler (in HTML) -> `solv.dispatch`
